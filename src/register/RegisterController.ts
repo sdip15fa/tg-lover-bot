@@ -21,13 +21,20 @@ class RegisterController {
         });
     };
 
+    agreeTerms = async ctx => {
+        await registerService.agreeTerms(ctx.from.id);
+        await this.usernamePermission(ctx);
+    };
+
     disagreeTerms = async ctx => {
+        await registerService.disagreeTerms(ctx.from.id);
         await ctx.reply(RegisterMessages.DISAGREE_TERMS_ERROR);
         await ctx.scene.leave();
     };
 
     usernamePermission = async ctx => {
         const agreedUsernamePermission = await registerService.isAgreeUsernamePermission(ctx.from.id);
+
         if (agreedUsernamePermission) {
             await this.createInfo(ctx);
             return;
@@ -44,7 +51,13 @@ class RegisterController {
         );
     };
 
+    agreeUsernamePermission = async ctx => {
+        await registerService.agreeUsernamePermission(ctx.from.id);
+        await this.createInfo(ctx);
+    };
+
     disagreeUsernamePermission = async ctx => {
+        await registerService.disagreeUsernamePermission(ctx.from.id);
         await ctx.reply(RegisterMessages.DISAGREE_USERNAME_PERMISSION_ERROR);
         await ctx.scene.leave();
     };

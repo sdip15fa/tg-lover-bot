@@ -6,7 +6,7 @@ export const registerScene = new Scenes.BaseScene("register");
 
 registerScene.enter(registerController.enterScene);
 
-registerScene.action(RegisterAction.AGREE_TERMS, registerController.usernamePermission);
+registerScene.action(RegisterAction.AGREE_TERMS, registerController.agreeTerms);
 registerScene.action(RegisterAction.DISAGREE_TERMS, registerController.disagreeTerms);
-registerScene.action(RegisterAction.AGREE_USERNAME_PERMISSION, registerController.createInfo);
+registerScene.action(RegisterAction.AGREE_USERNAME_PERMISSION, registerController.agreeUsernamePermission);
 registerScene.action(RegisterAction.DISAGREE_USERNAME_PERMISSION, registerController.disagreeUsernamePermission);

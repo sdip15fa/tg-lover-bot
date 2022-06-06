@@ -15,8 +15,16 @@ class RegisterService {
         await userService.update(id, {agreeTerms: true});
     }
 
+    async disagreeTerms(id: string) {
+        await userService.update(id, {agreeTerms: false});
+    }
+
     async agreeUsernamePermission(id: string) {
         await userService.update(id, {agreeUsernamePermission: true});
+    }
+
+    async disagreeUsernamePermission(id: string) {
+        await userService.update(id, {agreeUsernamePermission: false});
     }
 }
 

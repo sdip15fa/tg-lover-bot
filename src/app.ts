@@ -26,6 +26,7 @@ bot.use(session());
 bot.use(stage.middleware());
 
 bot.start((ctx: any) => ctx.scene.enter("register"));
+bot.command("register", (ctx: any) => ctx.scene.enter("register"));
 
 // bot.command("me", ctx => {
 //     console.log(ctx.message.from.username);

@@ -1,4 +1,4 @@
 import {initializeApp} from "firebase-admin/app";
-import {firebaseConfig} from "../configs/firebaseConfig";
+import {firebaseConfig} from "../common/config/firebaseConfig";
 
 export const firebaseApp = initializeApp(firebaseConfig);

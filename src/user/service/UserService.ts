@@ -1,7 +1,9 @@
-import {db} from "../common/db";
-import {UserView} from "./UserView";
+import {Singleton} from "typescript-ioc";
+import {db} from "../../common/db";
+import {UserView} from "../domain/UserView";
 
-class UserService {
+@Singleton
+export class UserService {
     private readonly usersRef = db.ref("users");
 
     async get(id: string) {
@@ -18,5 +20,3 @@ class UserService {
         await this.usersRef.child(id).update(data);
     }
 }
-
-export const userService = new UserService();

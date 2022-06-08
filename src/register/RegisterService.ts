@@ -1,31 +1,38 @@
-import {userService} from "../user/UserService";
+import {Inject, Singleton} from "typescript-ioc";
+import {UserService} from "../user/service/UserService";
 
-class RegisterService {
-    async isAgreeTerms(id: string) {
-        const user = await userService.get(id);
+@Singleton
+export class RegisterService {
+    constructor(
+        @Inject
+        private userService: UserService
+    ) {}
+
+    isAgreeTerms = async (id: string) => {
+        const user = await this.userService.get(id);
         return user?.agreeTerms ?? false;
-    }
+    };
 
-    async isAgreeUsernamePermission(id: string) {
-        const user = await userService.get(id);
+    isAgreeUsernamePermission = async (id: string) => {
+        const user = await this.userService.get(id);
         return user?.agreeUsernamePermission ?? false;
-    }
+    };
 
-    async agreeTerms(id: string) {
-        await userService.update(id, {agreeTerms: true});
-    }
+    agreeTerms = async (id: string) => {
+        await this.userService.update(id, {agreeTerms: true});
+    };
 
-    async disagreeTerms(id: string) {
-        await userService.update(id, {agreeTerms: false});
-    }
+    disagreeTerms = async (id: string) => {
+        await this.userService.update(id, {agreeTerms: false});
+    };
 
-    async agreeUsernamePermission(id: string) {
-        await userService.update(id, {agreeUsernamePermission: true});
-    }
+    agreeUsernamePermission = async (id: string) => {
+        await this.userService.update(id, {agreeUsernamePermission: true});
+    };
 
-    async disagreeUsernamePermission(id: string) {
-        await userService.update(id, {agreeUsernamePermission: false});
-    }
+    disagreeUsernamePermission = async (id: string) => {
+        await this.userService.update(id, {agreeUsernamePermission: false});
+    };
+
+    createInfo = async (ctx: any) => {};
 }
-
-export const registerService = new RegisterService();

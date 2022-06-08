@@ -104,6 +104,53 @@ const DISAGREE_TERMS_ERROR = "非常抱歉，因為您不同意上述條款，TG
 
 const DISAGREE_USERNAME_PERMISSION_ERROR = "非常抱歉，因為您不同意 TG Lover 使用您的帳戶名稱，TG Lover 將不能為您服務😔";
 
+const USER_INFO_SCHEMA = `現在，您可以使用以下 YAML 標準模板寫下關於您的自我介紹，完成自我介紹後方可使用 TG Lover 進行配對。
+
+\`\`\`yaml
+性別: 男 / 女 (必填)
+年齡: 13-99 (必填，必須為數字)
+身高: 130-220 (必填，必須為數字)
+尋找對象關係: 結婚對象 / 穩定關係 / 短期關係 (必填)
+是否吸煙: 吸煙 / 不吸煙 (必填)
+職業: 任意字串 (選填)
+月入: 任意數字 (單位 HKD，選填)
+學歷: 小學 / 中學 / 大專 / 學士 / 碩士 / 博士 (選填)
+
+自我介紹:
+- 我是。。。
+- 我喜歡。。。
+- 我的興趣是。。。
+(至少一段，最多十段)
+
+尋找對象:
+- 樣靚
+- 身材正
+- 人品好
+(至少一項，最多十項)
+\`\`\`
+
+以下是自我介紹例子，你可以直接複製再作修改，然後回覆：
+`;
+
+const USER_INFO_SAMPLE = `性別: 男
+年齡: 20
+身高: 168
+尋找對象關係: 穩定關係
+是否吸煙: 不吸煙
+職業: 高級軟件攻城獅
+月入: 100000
+學歷: 學士
+
+自我介紹:
+- 我是一位IT狗
+- 我喜歡狗
+- 我的興趣是做狗
+
+尋找對象:
+- 樣靚
+- 身材正
+- 人品好`;
+
 export const RegisterMessages = Object.freeze({
     TERMS,
     AGREE,
@@ -113,4 +160,6 @@ export const RegisterMessages = Object.freeze({
     DISAGREE_TERMS_ERROR,
     USERNAME_PERMISSION_CONFIRM,
     DISAGREE_USERNAME_PERMISSION_ERROR,
+    USER_INFO_SCHEMA,
+    USER_INFO_SAMPLE,
 });

@@ -1,14 +1,26 @@
+import {ValidationError} from "class-validator";
 import {Markup} from "telegraf";
-import {RegisterAction} from "./RegisterAction";
-import {RegisterMessages} from "./RegisterMessages";
-import {registerService} from "./RegisterService";
+import {Inject, Singleton} from "typescript-ioc";
+import {UserInfoParser} from "../user/service/UserInfoParser";
+import {RegisterAction} from "./constant/RegisterAction";
+import {RegisterMessages} from "./constant/RegisterMessages";
+import {RegisterService} from "./RegisterService";
 
-class RegisterController {
+@Singleton
+export class RegisterController {
+    constructor(
+        @Inject
+        private registerService: RegisterService,
+
+        @Inject
+        private userInfoParser: UserInfoParser
+    ) {}
+
     enterScene = async ctx => {
-        const agreedTerms = await registerService.isAgreeTerms(ctx.from.id);
+        const agreedTerms = await this.registerService.isAgreeTerms(ctx.from.id);
 
         if (agreedTerms) {
-            await this.usernamePermission(ctx);
+            await this.askForUsernamePermission(ctx);
             return;
         }
 
@@ -21,22 +33,11 @@ class RegisterController {
         });
     };
 
-    agreeTerms = async ctx => {
-        await registerService.agreeTerms(ctx.from.id);
-        await this.usernamePermission(ctx);
-    };
-
-    disagreeTerms = async ctx => {
-        await registerService.disagreeTerms(ctx.from.id);
-        await ctx.reply(RegisterMessages.DISAGREE_TERMS_ERROR);
-        await ctx.scene.leave();
-    };
-
-    usernamePermission = async ctx => {
-        const agreedUsernamePermission = await registerService.isAgreeUsernamePermission(ctx.from.id);
+    askForUsernamePermission = async ctx => {
+        const agreedUsernamePermission = await this.registerService.isAgreeUsernamePermission(ctx.from.id);
 
         if (agreedUsernamePermission) {
-            await this.createInfo(ctx);
+            await this.askForUserInfo(ctx);
             return;
         }
 
@@ -51,20 +52,53 @@ class RegisterController {
         );
     };
 
+    askForUserInfo = async ctx => {
+        await ctx.replyWithMarkdownV2(RegisterMessages.USER_INFO_SCHEMA);
+        await ctx.reply(RegisterMessages.USER_INFO_SAMPLE, {
+            reply_markup: {force_reply: true, input_field_placeholder: "AAA"},
+        });
+    };
+
+    agreeTerms = async ctx => {
+        await this.registerService.agreeTerms(ctx.from.id);
+        await this.askForUsernamePermission(ctx);
+    };
+
+    disagreeTerms = async ctx => {
+        await this.registerService.disagreeTerms(ctx.from.id);
+        await ctx.reply(RegisterMessages.DISAGREE_TERMS_ERROR);
+        await ctx.scene.leave();
+    };
+
     agreeUsernamePermission = async ctx => {
-        await registerService.agreeUsernamePermission(ctx.from.id);
-        await this.createInfo(ctx);
+        await this.registerService.agreeUsernamePermission(ctx.from.id);
+        await this.askForUserInfo(ctx);
     };
 
     disagreeUsernamePermission = async ctx => {
-        await registerService.disagreeUsernamePermission(ctx.from.id);
+        await this.registerService.disagreeUsernamePermission(ctx.from.id);
         await ctx.reply(RegisterMessages.DISAGREE_USERNAME_PERMISSION_ERROR);
         await ctx.scene.leave();
     };
 
-    createInfo = async ctx => {
-        await ctx.reply("hello");
+    createUserInfo = async ctx => {
+        try {
+            const userInfoYAML = ctx.match.input;
+            await this.userInfoParser.parseYAML(userInfoYAML);
+        } catch (e) {
+            if (Array.isArray(e) && e[0] instanceof ValidationError) {
+                const validationErrors: ValidationError[] = e;
+
+                // validationErrors.map(v => v.)
+            }
+
+            console.log(e);
+        }
+        // const userInfoYAMLObject = yaml.parse(userInfoYAML);
+
+        // if (!userInfoYAMLObject.性別) throw new Error("性別必須填寫");
+        // if (!Object.values(GenderView).includes(userInfoYAMLObject.性別)) throw new Error("性別必須是為");
+
+        // console.log(userInfoYAMLObject);
     };
 }
-
-export const registerController = new RegisterController();

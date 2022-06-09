@@ -4,7 +4,8 @@
   "main": "src/app.ts",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/app.ts"
+    "start": "ts-node src/app.ts",
+    "format" : "prettier --write 'src/**/*.ts'"
   },
   "dependencies": {
     "@types/node": "^17.0.38",

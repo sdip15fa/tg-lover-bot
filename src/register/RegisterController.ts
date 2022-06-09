@@ -11,7 +11,6 @@ export class RegisterController {
     constructor(
         @Inject
         private registerService: RegisterService,
-
         @Inject
         private userInfoParser: UserInfoParser
     ) {}

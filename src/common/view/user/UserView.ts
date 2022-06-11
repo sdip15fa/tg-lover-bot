@@ -69,11 +69,12 @@ export class UserView {
     @ArrayMaxSize(10, {message: FieldValidationMessage.ARRAY_MAX_SIZE})
     public relationshipCriteria: string[] | null | undefined;
 
-    public photoURLs: string[] | null | undefined;
-
     public filterGender: FilterGender | undefined;
     public filterAgeLowerBound: number | undefined;
     public filterAgeUpperBound: number | undefined;
     public filterHeightLowerBound: number | undefined;
     public filterHeightUpperBound: number | undefined;
+
+    public createdAt: string | undefined;
+    public updatedAt: string | undefined;
 }

@@ -173,14 +173,17 @@ export class RegisterController {
         try {
             const isInfoUpdated = await this.registerService.isInfoUpdated(ctx.from.id);
 
-            if (!isInfoUpdated) {
-                return;
-            }
+            if (!isInfoUpdated) return;
 
+            const message = await ctx.reply("上傳照片中...");
             const photoURLs = await this.registerService.uploadPhotos(ctx.from.id, ctx.message.photo);
+            await ctx.telegram.editMessageText(ctx.chat.id, message.message_id, undefined, "上傳照片完成，正在處理中...");
 
             if (photoURLs !== null) {
                 const photoCount = photoURLs.length;
+                await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
+                await ctx.replyWithChatAction("upload_photo");
+
                 await ctx.replyWithMediaGroup(
                     photoURLs.map(url => ({
                         type: "photo",

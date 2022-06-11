@@ -18,7 +18,6 @@ export interface User {
     education?: Education | null;
     self_intro?: string | null;
     relationship_criteria?: string | null;
-    photo_urls?: {data: string[]} | null;
     info_updated: boolean;
     photo_uploaded: boolean;
     filter_updated: boolean;
@@ -27,4 +26,6 @@ export interface User {
     filter_age_lower_bound: number;
     filter_height_upper_bound: number;
     filter_height_lower_bound: number;
+    created_at: string;
+    updated_at: string;
 }

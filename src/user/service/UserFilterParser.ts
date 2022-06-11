@@ -46,7 +46,7 @@ export class UserFilterParser {
 
         const lowerBoundMatches = age.match(/^(\d+)或以上$/);
         const upperBoundMatches = age.match(/^(\d+)或以下$/);
-        const betweenMatches = age.match(/^(\d+)\-(\d+)$/);
+        const betweenMatches = age.match(/^(\d+)-(\d+)$/);
 
         if (!lowerBoundMatches && !upperBoundMatches && !betweenMatches && age !== "不限") {
             return "「年齡」格式錯誤";
@@ -76,7 +76,7 @@ export class UserFilterParser {
 
         const lowerBoundMatches = height.match(/^(\d+)或以上$/);
         const upperBoundMatches = height.match(/^(\d+)或以下$/);
-        const betweenMatches = height.match(/^(\d+)\-(\d+)$/);
+        const betweenMatches = height.match(/^(\d+)-(\d+)$/);
 
         if (!lowerBoundMatches && !upperBoundMatches && !betweenMatches && height !== "不限") {
             return "「身高」格式錯誤";

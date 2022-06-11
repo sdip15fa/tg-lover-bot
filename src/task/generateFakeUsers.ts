@@ -7,4 +7,5 @@ const mockUserFactory = Container.get(MockUserFactory);
     for (let i = 0; i < 100; i++) {
         await mockUserFactory.create();
     }
+    return;
 })();

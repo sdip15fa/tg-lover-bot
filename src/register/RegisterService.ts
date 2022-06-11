@@ -6,12 +6,15 @@ import {PhotoService} from "../photo/service/PhotoService";
 import {last} from "lodash";
 import {RegisterMessage} from "./constant/RegisterMessage";
 import {UserFilterView} from "../common/view/user/UserFilterView";
+import {UserPhotoService} from "../user/service/UserPhotoService";
 
 @Singleton
 export class RegisterService {
     constructor(
         @Inject
         private userService: UserService,
+        @Inject
+        private userPhotoService: UserPhotoService,
         @Inject
         private photoService: PhotoService
     ) {}
@@ -77,15 +80,9 @@ export class RegisterService {
     };
 
     uploadPhotos = async (id: string, photos: PhotoSize[]): Promise<string[] | null> => {
-        const user = await this.userService.get(id);
+        const photoCount = await this.userPhotoService.getPhotosCount(id);
 
-        if (!user) {
-            return null;
-        }
-
-        const photoURLs = user.photoURLs ?? [];
-
-        if (photoURLs.length >= 5) {
+        if (photoCount >= 5) {
             throw new Error(RegisterMessage.MAX_UPLOAD_PHOTO_ERROR);
         }
 
@@ -93,26 +90,11 @@ export class RegisterService {
 
         const photoURL = await this.photoService.uploadPhoto(await this.photoService.getPhoto(photo.file_id));
 
-        const newPhotoURLs = [...(user?.photoURLs || []), photoURL];
-
-        await this.userService.upsert({
-            telegramId: id,
-            photoURLs: newPhotoURLs,
-        });
-
-        return newPhotoURLs;
+        await this.userPhotoService.addPhoto(id, photoURL);
+        return await this.userPhotoService.getPhotoURLs(id);
     };
 
     clearPhotos = async (id: string) => {
-        const user = await this.userService.get(id);
-
-        if (!user) {
-            return;
-        }
-
-        await this.userService.upsert({
-            telegramId: id,
-            photoURLs: [],
-        });
+        await this.userPhotoService.clearPhotos(id);
     };
 }

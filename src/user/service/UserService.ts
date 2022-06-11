@@ -43,12 +43,13 @@ export class UserService {
             education: view.education,
             self_intro: view.selfIntro === null ? null : view.selfIntro ? view.selfIntro.join("\n") : undefined,
             relationship_criteria: view.relationshipCriteria === null ? null : view.relationshipCriteria ? view.relationshipCriteria.join("\n") : undefined,
-            photo_urls: view.photoURLs === null ? null : view.photoURLs ? {data: view.photoURLs} : undefined,
             filter_gender: view.filterGender!,
             filter_age_lower_bound: view.filterAgeLowerBound!,
             filter_age_upper_bound: view.filterAgeUpperBound!,
             filter_height_lower_bound: view.filterHeightLowerBound!,
             filter_height_upper_bound: view.filterHeightUpperBound!,
+            created_at: view.createdAt!,
+            updated_at: view.updatedAt!,
         };
     }
 
@@ -74,12 +75,13 @@ export class UserService {
         view.education = user.education;
         view.selfIntro = typeof user.self_intro === "string" ? user.self_intro.split(/\n/g) : user.self_intro;
         view.relationshipCriteria = typeof user.relationship_criteria === "string" ? user.relationship_criteria.split(/\n/g) : user.relationship_criteria;
-        view.photoURLs = user.photo_urls == null ? null : user.photo_urls?.data ? user.photo_urls.data : undefined;
         view.filterGender = user.filter_gender;
         view.filterAgeLowerBound = user.filter_age_lower_bound;
         view.filterAgeUpperBound = user.filter_age_upper_bound;
         view.filterHeightLowerBound = user.filter_height_lower_bound;
         view.filterHeightUpperBound = user.filter_height_upper_bound;
+        view.createdAt = user.created_at;
+        view.updatedAt = user.updated_at;
         return view;
     }
 }

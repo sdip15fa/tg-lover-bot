@@ -9,12 +9,15 @@ import {Smoking} from "../../common/enum/Smoking";
 import {faker} from "@faker-js/faker";
 import {Education} from "../../common/enum/Education";
 import {FilterGender} from "../../common/enum/FilterGender";
+import {UserPhotoService} from "../service/UserPhotoService";
 
 @Singleton
 export class MockUserFactory {
     constructor(
         @Inject
-        private userService: UserService
+        private userService: UserService,
+        @Inject
+        private userPhotoService: UserPhotoService
     ) {}
 
     public async create() {
@@ -35,12 +38,13 @@ export class MockUserFactory {
         userView.education = RandomUtil.randomPick(Education);
         userView.selfIntro = [faker.lorem.sentence(), faker.lorem.sentence(), faker.lorem.sentence()];
         userView.relationshipCriteria = [faker.lorem.sentence(), faker.lorem.sentence(), faker.lorem.sentence()];
-        userView.photoURLs = [faker.image.avatar(), faker.image.avatar(), faker.image.avatar()];
         userView.filterGender = RandomUtil.randomPick(FilterGender);
         userView.filterAgeLowerBound = 18;
         userView.filterAgeUpperBound = 99;
         userView.filterHeightLowerBound = 140;
         userView.filterHeightUpperBound = 220;
+
         await this.userService.upsert(userView);
+        await Promise.all([faker.image.avatar(), faker.image.avatar(), faker.image.avatar()].map(url => this.userPhotoService.addPhoto(userView.telegramId, url)));
     }
 }

@@ -1,7 +1,7 @@
 import {UserService} from "../service/UserService";
-import {Inject} from "typescript-ioc";
+import {Inject, Singleton} from "typescript-ioc";
 import {UserView} from "../../common/view/user/UserView";
-import uuid from "uuid";
+import * as uuid from "uuid";
 import {Gender} from "../../common/enum/Gender";
 import {RandomUtil} from "../../common/util/RandomUtil";
 import {GoalRelationship} from "../../common/enum/GoalRelationship";
@@ -10,6 +10,7 @@ import {faker} from "@faker-js/faker";
 import {Education} from "../../common/enum/Education";
 import {FilterGender} from "../../common/enum/FilterGender";
 
+@Singleton
 export class MockUserFactory {
     constructor(
         @Inject

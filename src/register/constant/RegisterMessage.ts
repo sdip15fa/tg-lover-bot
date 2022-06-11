@@ -104,17 +104,20 @@ const DISAGREE_TERMS_ERROR = "非常抱歉，因為您不同意上述條款，TG
 
 const DISAGREE_USERNAME_PERMISSION_ERROR = "非常抱歉，因為您不同意 TG Lover 使用您的帳戶名稱，TG Lover 將不能為您服務😔";
 
-const USER_INFO_SCHEMA = `現在，您可以使用以下 YAML 標準模板寫下關於您的自我介紹，完成自我介紹後方可使用 TG Lover 進行配對。
+const YOUR_USER_INFO = "您的自我介紹";
+
+const USER_INFO_SCHEMA = `現在，您可以使用以下 YAML 格式模板寫下關於您的自我介紹，完成自我介紹後方可使用 TG Lover 進行配對。您必須以 \\\#自我介紹 作開頭。
 
 \`\`\`yaml
-性別: 男 / 女 (必填)
+#自我介紹
+性別: 男 | 女 (必填選項)
 年齡: 13-99 (必填，必須為數字)
-身高: 130-220 (必填，必須為數字)
-尋找對象關係: 結婚對象 / 穩定關係 / 短期關係 (必填)
-是否吸煙: 吸煙 / 不吸煙 (必填)
+身高: 140-220 (必填，必須為數字)
+尋找對象關係: 結婚對象 | 穩定關係 | 短期關係 (必填選項)
+是否吸煙: 吸煙 | 間中吸煙 | 不吸煙 (必填選項)
 職業: 任意字串 (選填)
-月入: 任意數字 (單位 HKD，選填)
-學歷: 小學 / 中學 / 大專 / 學士 / 碩士 / 博士 (選填)
+月入: 任意數字 (單位 HKD，選填，最少值 0，最大值 100000000)
+學歷: 小學 | 中學 | 大專 | 學士 | 碩士 | 博士 (選填選項)
 
 自我介紹:
 - 我是。。。
@@ -132,9 +135,10 @@ const USER_INFO_SCHEMA = `現在，您可以使用以下 YAML 標準模板寫下
 以下是自我介紹例子，你可以直接複製再作修改，然後回覆：
 `;
 
-const USER_INFO_SAMPLE = `性別: 男
+const USER_INFO_SAMPLE = `#自我介紹
+性別: 男
 年齡: 20
-身高: 168
+身高: 160
 尋找對象關係: 穩定關係
 是否吸煙: 不吸煙
 職業: 高級軟件攻城獅
@@ -151,7 +155,48 @@ const USER_INFO_SAMPLE = `性別: 男
 - 身材正
 - 人品好`;
 
-export const RegisterMessages = Object.freeze({
+const USER_INFO_FORMAT_ERROR = "您輸入的格式有誤，請修正後再重新回覆。";
+const USER_INFO_VALIDATION_ERROR = "您的資料有誤，請修正後再重新回覆";
+
+const USER_INFO_UPDATED = `您的自我介紹已更新完成😊`;
+
+const ASK_FOR_PHOTOS = "現在可以上傳 1-5 張您的個人照片 (如有)，直接在訊息欄上傳則可，或是按下方按鈕略過。";
+const SKIP_THIS_STEP = "略過此步驟";
+
+const MAX_UPLOAD_PHOTO_ERROR = "最多只能上傳5張照片\n您可以使用 /clearPhotos 清除所有個人照片，並重新上傳。";
+
+const USER_PHOTOS_UPDATED = "已為您更新{x}張個人照片😊\n如你想刪除現有照片，您可以使用 /clearPhotos 清除所有個人照片，然後再上傳一次。\n如果以完成此步驟，請按下方「下一步」按鈕。";
+const USER_PHOTOS_CLEARED = "您已清除所有個人照片！";
+
+const NEXT_STEP = "下一步";
+
+const FILTER_SCHEMA = `現在，您可以使用以下 YAML 格式模板寫下關於您的配對條件，完成配對條件後方可使用 TG Lover 進行配對。您必須以 \\\#配對條件 作開頭。
+
+\`\`\`yaml
+#配對條件
+性別: 異性 | 同性 | 不限 (必填)
+年齡: XX或以下 | XX-YY | YY或以上 | 不限 (必填，以歲為單位)
+身高: XX或以下 | XX-YY | YY或以上 | 不限 (必填，必須為數字，以 cm 為單位)
+\`\`\`
+
+以下是配對條件例子，你可以直接複製再作修改，然後回覆：
+`;
+
+const FILTER_SAMPLE = `#配對條件
+性別: 異性
+年齡: 18-22
+身高: 150-160
+`;
+
+const GOTO_NEXT_STEP_IF_UPLOAD_FINISHED = "如果您確定已上傳完成所有個人照片，請按下方「下一步」按鈕。";
+
+const YOUR_FILTER = "您的配對條件";
+
+const USER_FILTER_UPDATED = `您的配對條件已更新完成😊`;
+
+const REGISTER_FINISHED = "恭喜您，您已完成註冊，您現在可以用 /match 進行配對。";
+
+export const RegisterMessage = Object.freeze({
     TERMS,
     AGREE,
     DISAGREE,
@@ -162,4 +207,20 @@ export const RegisterMessages = Object.freeze({
     DISAGREE_USERNAME_PERMISSION_ERROR,
     USER_INFO_SCHEMA,
     USER_INFO_SAMPLE,
+    YOUR_USER_INFO,
+    USER_INFO_FORMAT_ERROR,
+    USER_INFO_VALIDATION_ERROR,
+    USER_INFO_UPDATED,
+    ASK_FOR_PHOTOS,
+    SKIP_THIS_STEP,
+    MAX_UPLOAD_PHOTO_ERROR,
+    USER_PHOTOS_UPDATED,
+    USER_PHOTOS_CLEARED,
+    NEXT_STEP,
+    FILTER_SCHEMA,
+    FILTER_SAMPLE,
+    GOTO_NEXT_STEP_IF_UPLOAD_FINISHED,
+    YOUR_FILTER,
+    USER_FILTER_UPDATED,
+    REGISTER_FINISHED,
 });

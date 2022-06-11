@@ -1,4 +1,3 @@
-import {getDatabase} from "firebase-admin/database";
-import {firebaseApp} from "../utils/firebaseApp";
+import knex from "knex";
 
-export const db = getDatabase(firebaseApp);
+export const db = knex(require("../../knexfile")[process.env.NODE_ENV || "development"]);

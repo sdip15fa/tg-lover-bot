@@ -13,5 +13,17 @@ registerScene.action(RegisterAction.AGREE_TERMS, registerController.agreeTerms);
 registerScene.action(RegisterAction.DISAGREE_TERMS, registerController.disagreeTerms);
 registerScene.action(RegisterAction.AGREE_USERNAME_PERMISSION, registerController.agreeUsernamePermission);
 registerScene.action(RegisterAction.DISAGREE_USERNAME_PERMISSION, registerController.disagreeUsernamePermission);
+registerScene.action(RegisterAction.UPDATE_FILTER, registerController.askForFilter);
 
-registerScene.hears(/自我介紹/g, registerController.createUserInfo);
+registerScene.hears(/^#自我介紹/g, registerController.createUserInfo);
+registerScene.hears(/^#配對條件/g, registerController.updateFilter);
+registerScene.command("clearPhotos", registerController.clearPhotos);
+
+registerScene.on("message", async ctx => {
+    const hasPhoto = Boolean((ctx as any)?.message?.photo);
+
+    if (hasPhoto) {
+        await registerController.uploadPhotos(ctx);
+        return;
+    }
+});

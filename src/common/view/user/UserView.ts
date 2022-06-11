@@ -1,10 +1,10 @@
-import {ArrayMaxSize, ArrayMinSize, ArrayNotEmpty, IsArray, IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min} from "class-validator";
+import {ArrayMaxSize, ArrayMinSize, IsArray, IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min} from "class-validator";
 import {FieldValidationMessage} from "../../core/validation/FieldValidationMessage";
-import {Education} from "../../enums/Education";
-import {Gender} from "../../enums/Gender";
-import {GoalRelationship} from "../../enums/GoalRelationship";
-import {Smoking} from "../../enums/Smoking";
-import {FilterGender} from "../../enums/FilterGender";
+import {Education} from "../../enum/Education";
+import {Gender} from "../../enum/Gender";
+import {GoalRelationship} from "../../enum/GoalRelationship";
+import {Smoking} from "../../enum/Smoking";
+import {FilterGender} from "../../enum/FilterGender";
 
 export class UserView {
     public telegramId: string = "";

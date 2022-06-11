@@ -1,7 +1,7 @@
 import {Singleton} from "typescript-ioc";
 import yaml from "yaml";
 import {UserFilterView} from "../../common/view/user/UserFilterView";
-import {FilterGender} from "../../common/enums/FilterGender";
+import {FilterGender} from "../../common/enum/FilterGender";
 
 @Singleton
 export class UserFilterParser {

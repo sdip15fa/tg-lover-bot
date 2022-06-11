@@ -1,4 +1,4 @@
-import {FilterGender} from "../../enums/FilterGender";
+import {FilterGender} from "../../enum/FilterGender";
 import {FieldValidationMessage} from "../../core/validation/FieldValidationMessage";
 import {IsDefined, IsEnum} from "class-validator";
 

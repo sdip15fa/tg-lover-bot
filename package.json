@@ -8,6 +8,7 @@
     "format": "prettier --write 'src/**/*.ts'"
   },
   "dependencies": {
+    "@faker-js/faker": "^7.2.0",
     "@types/lodash": "^4.14.182",
     "@types/node": "^17.0.38",
     "@types/uuid": "^8.3.4",

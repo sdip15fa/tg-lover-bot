@@ -1,8 +1,8 @@
-import {Gender} from "../../common/enums/Gender";
-import {GoalRelationship} from "../../common/enums/GoalRelationship";
-import {Smoking} from "../../common/enums/Smoking";
-import {Education} from "../../common/enums/Education";
-import {FilterGender} from "../../common/enums/FilterGender";
+import {Gender} from "../../common/enum/Gender";
+import {GoalRelationship} from "../../common/enum/GoalRelationship";
+import {Smoking} from "../../common/enum/Smoking";
+import {Education} from "../../common/enum/Education";
+import {FilterGender} from "../../common/enum/FilterGender";
 
 export interface User {
     telegram_id: string;

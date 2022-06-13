@@ -10,6 +10,7 @@ export class UserInfoParser {
         const userView = new UserView();
 
         userView.telegramId = id;
+        userView.name = userInfoYAMLObject.暱稱;
         userView.gender = userInfoYAMLObject.性別 || null;
         userView.age = userInfoYAMLObject.年齡 || null;
         userView.height = userInfoYAMLObject.身高 || null;

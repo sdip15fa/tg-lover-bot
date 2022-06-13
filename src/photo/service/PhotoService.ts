@@ -31,16 +31,12 @@ export class PhotoService {
         return fs.createReadStream(`/tmp/${fileUUID}`);
     }
 
-    async uploadPhoto(file: any) {
-        try {
-            const formData = new FormData();
-            formData.append("image", file);
-            const response = await axios.post("https://api.na.cx/upload", formData, {
-                headers: formData.getHeaders(),
-            });
-            return response.data.url;
-        } catch (e) {
-            console.log(e);
-        }
+    async uploadPhoto(file: any): Promise<string> {
+        const formData = new FormData();
+        formData.append("image", file);
+        const response = await axios.post("https://api.na.cx/upload", formData, {
+            headers: formData.getHeaders(),
+        });
+        return response.data.url;
     }
 }

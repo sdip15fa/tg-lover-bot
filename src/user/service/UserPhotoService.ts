@@ -9,8 +9,8 @@ export class UserPhotoService {
     }
 
     async getPhotosCount(id: string): Promise<number> {
-        const result = await UserPhotoService.userPhotoRepository.count({telegram_id: id});
-        return Number(result?.[0]?.telegram_id) || 0;
+        const result = await UserPhotoService.userPhotoRepository.count().where({telegram_id: id});
+        return Number(result?.[0].count) || 0;
     }
 
     async getPhotoURLs(id: string): Promise<string[]> {

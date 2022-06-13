@@ -19,6 +19,11 @@ export class RegisterService {
         private photoService: PhotoService
     ) {}
 
+    isRegistered = async (id: string) => {
+        const user = await this.userService.get(id);
+        return user?.registered ?? false;
+    };
+
     isAgreeTerms = async (id: string) => {
         const user = await this.userService.get(id);
         return user?.agreeTerms ?? false;
@@ -52,8 +57,8 @@ export class RegisterService {
         await this.userService.upsert({telegramId: id, agreeTerms: false});
     };
 
-    agreeUsernamePermission = async (id: string) => {
-        await this.userService.upsert({telegramId: id, agreeUsernamePermission: true});
+    agreeUsernamePermission = async (id: string, username: string) => {
+        await this.userService.upsert({telegramId: id, username, agreeUsernamePermission: true});
     };
 
     disagreeUsernamePermission = async (id: string) => {
@@ -75,21 +80,28 @@ export class RegisterService {
         });
     };
 
+    markRegistered = async (id: string) => {
+        await this.userService.upsert({
+            telegramId: id,
+            registered: true,
+        });
+    };
+
     markPhotoUploaded = async (id: string) => {
         await this.userService.upsert({telegramId: id, photoUploaded: true});
     };
 
-    uploadPhotos = async (id: string, photos: PhotoSize[]): Promise<string[] | null> => {
+    uploadPhoto = async (id: string, photo: PhotoSize): Promise<string> => {
         const photoCount = await this.userPhotoService.getPhotosCount(id);
 
         if (photoCount >= 5) {
             throw new Error(RegisterMessage.MAX_UPLOAD_PHOTO_ERROR);
         }
 
-        const photo: PhotoSize = last(photos) as PhotoSize;
+        return this.photoService.uploadPhoto(await this.photoService.getPhoto(photo.file_id));
+    };
 
-        const photoURL = await this.photoService.uploadPhoto(await this.photoService.getPhoto(photo.file_id));
-
+    addPhoto = async (id: string, photoURL: string): Promise<string[]> => {
         await this.userPhotoService.addPhoto(id, photoURL);
         return await this.userPhotoService.getPhotoURLs(id);
     };

@@ -9,6 +9,12 @@ import {FilterGender} from "../../enum/FilterGender";
 export class UserView {
     public telegramId: string = "";
 
+    @IsDefined({message: FieldValidationMessage.IS_DEFINED})
+    @IsNotEmpty({message: FieldValidationMessage.IS_NOT_EMPTY})
+    public name: string | undefined;
+
+    public username?: string;
+
     public agreeTerms?: boolean;
 
     public agreeUsernamePermission?: boolean;
@@ -18,6 +24,8 @@ export class UserView {
     public photoUploaded?: boolean;
 
     public filterUpdated?: boolean;
+
+    public registered?: boolean;
 
     @IsDefined({message: FieldValidationMessage.IS_DEFINED})
     @IsEnum(Gender, {message: FieldValidationMessage.IS_ENUM})

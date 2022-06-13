@@ -1,4 +1,5 @@
 const propertyNames = Object.freeze({
+    name: "暱稱",
     gender: "性別",
     age: "年齡",
     heightRange: "身高",

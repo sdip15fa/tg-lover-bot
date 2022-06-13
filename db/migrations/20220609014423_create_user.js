@@ -6,6 +6,8 @@ exports.up = async knex => {
     try {
         await knex.schema.createTable("users", table => {
             table.string("telegram_id").primary();
+            table.string("name").nullable();
+            table.string("username").nullable();
             table.boolean("agree_terms").nullable().defaultTo(false);
             table.boolean("agree_username_permission").nullable().defaultTo(false);
             table.integer("age").nullable().index();
@@ -25,9 +27,10 @@ exports.up = async knex => {
             table.integer("filter_height_upper_bound").nullable();
             table.integer("filter_height_lower_bound").nullable();
 
-            table.boolean("info_updated").nullable().defaultTo(false);
-            table.boolean("photo_uploaded").nullable().defaultTo(false);
-            table.boolean("filter_updated").nullable().defaultTo(false);
+            table.boolean("info_updated").nullable().defaultTo(false).index();
+            table.boolean("photo_uploaded").nullable().defaultTo(false).index();
+            table.boolean("filter_updated").nullable().defaultTo(false).index();
+            table.boolean("registered").nullable().defaultTo(false).index();
 
             table.timestamps(false, true);
         });

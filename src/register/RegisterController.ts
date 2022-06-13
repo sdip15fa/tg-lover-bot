@@ -21,98 +21,143 @@ export class RegisterController {
     ) {}
 
     enterScene = async ctx => {
-        const agreedTerms = await this.registerService.isAgreeTerms(ctx.from.id);
+        try {
+            const isRegistered = await this.registerService.isRegistered(ctx.from.id);
 
-        if (agreedTerms) {
-            await this.askForUsernamePermission(ctx);
-            return;
+            if (isRegistered) {
+                await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
+                await ctx.scene.leave();
+                return;
+            }
+
+            const agreedTerms = await this.registerService.isAgreeTerms(ctx.from.id);
+
+            if (agreedTerms) {
+                await this.askForUsernamePermission(ctx);
+                return;
+            }
+
+            await ctx.reply(RegisterMessage.TERMS, {
+                ...Markup.inlineKeyboard([
+                    Markup.button.callback(RegisterMessage.AGREE_TERMS, RegisterAction.AGREE_TERMS),
+                    Markup.button.callback(RegisterMessage.DISAGREE_TERMS, RegisterAction.DISAGREE_TERMS),
+                ]),
+                parse_mode: "HTML",
+            });
+        } catch (e) {
+            console.log(e);
         }
-
-        await ctx.reply(RegisterMessage.TERMS, {
-            ...Markup.inlineKeyboard([
-                Markup.button.callback(RegisterMessage.AGREE_TERMS, RegisterAction.AGREE_TERMS),
-                Markup.button.callback(RegisterMessage.DISAGREE_TERMS, RegisterAction.DISAGREE_TERMS),
-            ]),
-            parse_mode: "HTML",
-        });
     };
 
     askForUsernamePermission = async ctx => {
-        const agreedUsernamePermission = await this.registerService.isAgreeUsernamePermission(ctx.from.id);
+        try {
+            const agreedUsernamePermission = await this.registerService.isAgreeUsernamePermission(ctx.from.id);
 
-        if (agreedUsernamePermission) {
-            await this.askForUserInfo(ctx);
-            return;
+            if (agreedUsernamePermission) {
+                await this.askForUserInfo(ctx);
+                return;
+            }
+
+            const username = ctx.from.username;
+
+            await ctx.reply(
+                RegisterMessage.USERNAME_PERMISSION_CONFIRM(username),
+                Markup.inlineKeyboard([
+                    Markup.button.callback(RegisterMessage.AGREE, RegisterAction.AGREE_USERNAME_PERMISSION),
+                    Markup.button.callback(RegisterMessage.DISAGREE, RegisterAction.DISAGREE_USERNAME_PERMISSION),
+                ])
+            );
+        } catch (e) {
+            console.log(e);
         }
-
-        const username = ctx.from.username;
-
-        await ctx.reply(
-            RegisterMessage.USERNAME_PERMISSION_CONFIRM(username),
-            Markup.inlineKeyboard([
-                Markup.button.callback(RegisterMessage.AGREE, RegisterAction.AGREE_USERNAME_PERMISSION),
-                Markup.button.callback(RegisterMessage.DISAGREE, RegisterAction.DISAGREE_USERNAME_PERMISSION),
-            ])
-        );
     };
 
     askForUserInfo = async ctx => {
-        const isInfoUpdated = await this.registerService.isInfoUpdated(ctx.from.id);
-        if (isInfoUpdated) {
-            await this.askForUploadPhotos(ctx);
-            return;
-        }
+        try {
+            const isInfoUpdated = await this.registerService.isInfoUpdated(ctx.from.id);
+            if (isInfoUpdated) {
+                await this.askForUploadPhotos(ctx);
+                return;
+            }
 
-        await ctx.replyWithMarkdownV2(RegisterMessage.USER_INFO_SCHEMA);
-        await ctx.reply(RegisterMessage.USER_INFO_SAMPLE, {
-            reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_USER_INFO},
-        });
+            await ctx.replyWithMarkdownV2(RegisterMessage.USER_INFO_SCHEMA);
+            await ctx.reply(RegisterMessage.USER_INFO_SAMPLE, {
+                reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_USER_INFO},
+            });
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     askForUploadPhotos = async ctx => {
-        const isPhotoUploaded = await this.registerService.isPhotoUploaded(ctx.from.id);
-        if (isPhotoUploaded) {
-            await this.askForFilter(ctx);
-            return;
-        }
+        try {
+            const isPhotoUploaded = await this.registerService.isPhotoUploaded(ctx.from.id);
+            if (isPhotoUploaded) {
+                await this.askForFilter(ctx);
+                return;
+            }
 
-        await ctx.reply(RegisterMessage.ASK_FOR_PHOTOS, Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.SKIP_THIS_STEP, RegisterAction.UPDATE_FILTER)]));
+            await ctx.reply(RegisterMessage.ASK_FOR_PHOTOS, Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.SKIP_THIS_STEP, RegisterAction.UPDATE_FILTER)]));
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     askForFilter = async ctx => {
-        const isFilterUpdated = await this.registerService.isFilterUpdated(ctx.from.id);
-        if (isFilterUpdated) {
-            await this.registerFinished(ctx);
-            return;
+        try {
+            const isFilterUpdated = await this.registerService.isFilterUpdated(ctx.from.id);
+            if (isFilterUpdated) {
+                await this.registerFinished(ctx);
+                return;
+            }
+
+            await this.registerService.markPhotoUploaded(ctx.from.id);
+            await ctx.replyWithMarkdownV2(RegisterMessage.FILTER_SCHEMA);
+
+            await ctx.reply(RegisterMessage.FILTER_SAMPLE, {
+                reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_FILTER},
+            });
+        } catch (e) {
+            console.log(e);
         }
-
-        await this.registerService.markPhotoUploaded(ctx.from.id);
-        await ctx.replyWithMarkdownV2(RegisterMessage.FILTER_SCHEMA);
-
-        await ctx.reply(RegisterMessage.FILTER_SAMPLE, {
-            reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_FILTER},
-        });
     };
 
     agreeTerms = async ctx => {
-        await this.registerService.agreeTerms(ctx.from.id);
+        try {
+            await this.registerService.agreeTerms(ctx.from.id);
+        } catch (e) {
+            console.log(e);
+        }
+
         await this.askForUsernamePermission(ctx);
     };
 
     disagreeTerms = async ctx => {
-        await this.registerService.disagreeTerms(ctx.from.id);
-        await ctx.reply(RegisterMessage.DISAGREE_TERMS_ERROR);
+        try {
+            await this.registerService.disagreeTerms(ctx.from.id);
+            await ctx.reply(RegisterMessage.DISAGREE_TERMS_ERROR);
+        } catch (e) {
+            console.log(e);
+        }
         await ctx.scene.leave();
     };
 
     agreeUsernamePermission = async ctx => {
-        await this.registerService.agreeUsernamePermission(ctx.from.id);
+        try {
+            await this.registerService.agreeUsernamePermission(ctx.from.id, ctx.from.username);
+        } catch (e) {
+            console.log(e);
+        }
         await this.askForUserInfo(ctx);
     };
 
     disagreeUsernamePermission = async ctx => {
-        await this.registerService.disagreeUsernamePermission(ctx.from.id);
-        await ctx.reply(RegisterMessage.DISAGREE_USERNAME_PERMISSION_ERROR);
+        try {
+            await this.registerService.disagreeUsernamePermission(ctx.from.id);
+            await ctx.reply(RegisterMessage.DISAGREE_USERNAME_PERMISSION_ERROR);
+        } catch (e) {
+            console.log(e);
+        }
         await ctx.scene.leave();
     };
 
@@ -165,7 +210,12 @@ export class RegisterController {
     };
 
     registerFinished = async ctx => {
-        await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
+        try {
+            await this.registerService.markRegistered(ctx.from.id);
+            await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
+        } catch (e) {
+            console.log(e);
+        }
         await ctx.scene.leave();
     };
 
@@ -176,13 +226,15 @@ export class RegisterController {
             if (!isInfoUpdated) return;
 
             const message = await ctx.reply("上傳照片中...");
-            const photoURLs = await this.registerService.uploadPhotos(ctx.from.id, ctx.message.photo);
+            await ctx.replyWithChatAction("upload_photo");
+
+            const uploadedPhotoURL = await this.registerService.uploadPhoto(ctx.from.id, ctx.message.photo[ctx.message.photo.length - 1]);
+
             await ctx.telegram.editMessageText(ctx.chat.id, message.message_id, undefined, "上傳照片完成，正在處理中...");
+            const photoURLs = await this.registerService.addPhoto(ctx.from.id, uploadedPhotoURL);
 
             if (photoURLs !== null) {
                 const photoCount = photoURLs.length;
-                await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
-                await ctx.replyWithChatAction("upload_photo");
 
                 await ctx.replyWithMediaGroup(
                     photoURLs.map(url => ({
@@ -194,6 +246,7 @@ export class RegisterController {
                     RegisterMessage.USER_PHOTOS_UPDATED.replace("{x}", photoCount.toString()),
                     Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.NEXT_STEP, RegisterAction.UPDATE_FILTER)])
                 );
+                await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
             }
         } catch (e: any) {
             ctx.reply(e.message + "\n\n" + RegisterMessage.GOTO_NEXT_STEP_IF_UPLOAD_FINISHED, Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.NEXT_STEP, RegisterAction.UPDATE_FILTER)]));
@@ -201,8 +254,12 @@ export class RegisterController {
     };
 
     clearPhotos = async ctx => {
-        await this.registerService.clearPhotos(ctx.from.id);
-        await ctx.reply(RegisterMessage.USER_PHOTOS_CLEARED);
+        try {
+            await this.registerService.clearPhotos(ctx.from.id);
+            await ctx.reply(RegisterMessage.USER_PHOTOS_CLEARED);
+        } catch (e) {
+            console.log(e);
+        }
         await this.askForUploadPhotos(ctx);
     };
 }

@@ -4,8 +4,8 @@
  */
 exports.up = async knex => {
     await knex.schema.createTable("user_photos", table => {
-        table.string("telegram_id").notNullable();
-        table.string("photo_url").notNullable();
+        table.string("telegram_id").notNullable().index();
+        table.string("photo_url").notNullable().index();
         table.timestamps(false, true);
     });
 };

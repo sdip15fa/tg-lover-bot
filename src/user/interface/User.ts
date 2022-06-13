@@ -5,7 +5,9 @@ import {Education} from "../../common/enum/Education";
 import {FilterGender} from "../../common/enum/FilterGender";
 
 export interface User {
+    name: string;
     telegram_id: string;
+    username: string;
     agree_terms: boolean;
     agree_username_permission: boolean;
     gender: Gender;
@@ -21,6 +23,7 @@ export interface User {
     info_updated: boolean;
     photo_uploaded: boolean;
     filter_updated: boolean;
+    registered: boolean;
     filter_gender: FilterGender;
     filter_age_upper_bound: number;
     filter_age_lower_bound: number;

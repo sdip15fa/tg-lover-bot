@@ -1,6 +1,11 @@
 import "dotenv/config";
 import {Scenes, session, Telegraf} from "telegraf";
 import {registerScene} from "./register/RegisterScene";
+import {Container} from "typescript-ioc";
+import {MatchController} from "./match/MatchController";
+import express from "express";
+
+const matchController = Container.get(MatchController);
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "");
 
@@ -9,7 +14,12 @@ bot.use(session());
 bot.use(stage.middleware());
 
 bot.start((ctx: any) => ctx.scene.enter("register"));
+
 bot.command("register", (ctx: any) => ctx.scene.enter("register"));
+
+bot.command("match", matchController.match);
+bot.action(/MATCH_LIKE#(.+)/, matchController.like);
+bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);
 
 // bot.hears("fuck", Scenes.Stage.enter("super-wizard") as any);
 
@@ -19,11 +29,11 @@ bot.command("register", (ctx: any) => ctx.scene.enter("register"));
 
 // bot.telegram.sendMessage("234392020", "AAA");
 
-bot.launch({
-    webhook: {
-        hookPath: "/",
-        port: 5000,
-    },
+const app = express();
+app.use(bot.webhookCallback("/"));
+
+app.listen(5000, () => {
+    console.log("TG Lover bot listening on port 5000!");
 });
 
 // Enable graceful stop

@@ -23,11 +23,14 @@ export class MockUserFactory {
     public async create() {
         const userView = new UserView();
         userView.telegramId = uuid.v4();
+        userView.username = faker.internet.userName();
+        userView.name = faker.name.firstName();
         userView.agreeTerms = true;
         userView.agreeUsernamePermission = true;
         userView.infoUpdated = true;
         userView.photoUploaded = true;
         userView.filterUpdated = true;
+        userView.registered = true;
         userView.gender = RandomUtil.randomPick(Gender);
         userView.age = RandomUtil.randomRange(18, 99);
         userView.height = RandomUtil.randomRange(140, 220);

@@ -3,7 +3,6 @@ import {UserService} from "../user/service/UserService";
 import {UserView} from "../common/view/user/UserView";
 import {PhotoSize} from "typegram/message";
 import {PhotoService} from "../photo/service/PhotoService";
-import {last} from "lodash";
 import {RegisterMessage} from "./constant/RegisterMessage";
 import {UserFilterView} from "../common/view/user/UserFilterView";
 import {UserPhotoService} from "../user/service/UserPhotoService";

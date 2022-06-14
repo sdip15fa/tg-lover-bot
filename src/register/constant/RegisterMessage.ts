@@ -165,9 +165,9 @@ const USER_INFO_UPDATED = `您的自我介紹已更新完成😊`;
 const ASK_FOR_PHOTOS = "現在可以上傳 1-5 張您的個人照片 (如有)，直接在訊息欄上傳則可，或是按下方按鈕略過。";
 const SKIP_THIS_STEP = "略過此步驟";
 
-const MAX_UPLOAD_PHOTO_ERROR = "最多只能上傳5張照片\n您可以使用 /clearPhotos 清除所有個人照片，並重新上傳。";
+const MAX_UPLOAD_PHOTO_ERROR = "最多只能上傳5張照片\n您可以使用 /clear_photos 清除所有個人照片，並重新上傳。";
 
-const USER_PHOTOS_UPDATED = "已為您更新{x}張個人照片😊\n如你想刪除現有照片，您可以使用 /clearPhotos 清除所有個人照片，然後再上傳一次。\n如果以完成此步驟，請按下方「下一步」按鈕。";
+const USER_PHOTOS_UPDATED = "已為您更新{x}張個人照片😊\n如你想刪除現有照片，您可以使用 /clear_photos 清除所有個人照片，然後再上傳一次。\n如果以完成此步驟，請按下方「下一步」按鈕。";
 const USER_PHOTOS_CLEARED = "您已清除所有個人照片！";
 
 const NEXT_STEP = "下一步";

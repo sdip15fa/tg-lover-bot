@@ -1,0 +1,8 @@
+register - 註冊帳號
+match - 立即配對
+update_info - 更新個人資料
+upload_photos - 上傳個人照片
+clear_photos - 清除所有個人照片
+my_info - 預覽個人資料
+update_filter - 更新配對條件
+my_filter - 預覽配對條件

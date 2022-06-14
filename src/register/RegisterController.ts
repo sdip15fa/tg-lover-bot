@@ -190,8 +190,8 @@ export class RegisterController {
 
     updateFilter = async ctx => {
         try {
-            const userInfoYAML = ctx.match.input;
-            const userFilterView = await this.userFilterParser.parseYAML(ctx.from.id, userInfoYAML);
+            const userFilterYAML = ctx.match.input;
+            const userFilterView = await this.userFilterParser.parseYAML(ctx.from.id, userFilterYAML);
 
             await this.registerService.updateFilter(ctx.from.id, userFilterView);
 

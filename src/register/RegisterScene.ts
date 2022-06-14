@@ -17,7 +17,8 @@ registerScene.action(RegisterAction.UPDATE_FILTER, registerController.askForFilt
 
 registerScene.hears(/^#自我介紹/g, registerController.createUserInfo);
 registerScene.hears(/^#配對條件/g, registerController.updateFilter);
-registerScene.command("clearPhotos", registerController.clearPhotos);
+
+registerScene.command("clear_photos", registerController.clearPhotos);
 
 registerScene.on("message", async ctx => {
     const hasPhoto = Boolean((ctx as any)?.message?.photo);

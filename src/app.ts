@@ -4,8 +4,10 @@ import {registerScene} from "./register/RegisterScene";
 import {Container} from "typescript-ioc";
 import {MatchController} from "./match/MatchController";
 import express from "express";
+import {UserController} from "./user/UserController";
 
 const matchController = Container.get(MatchController);
+const userController = Container.get(UserController);
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "");
 
@@ -16,25 +18,33 @@ bot.use(stage.middleware());
 bot.start((ctx: any) => ctx.scene.enter("register"));
 
 bot.command("register", (ctx: any) => ctx.scene.enter("register"));
-
 bot.command("match", matchController.match);
+bot.command("update_info", userController.askForUserInfo);
+bot.command("upload_photos", userController.askForUploadPhotos);
+bot.command("clear_photos", userController.clearPhotos);
+bot.command("update_filter", userController.askForFilter);
+bot.command("my_info", userController.myInfo);
+bot.command("my_filter", userController.myFilter);
+
 bot.action(/MATCH_LIKE#(.+)/, matchController.like);
 bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);
 
-// bot.hears("fuck", Scenes.Stage.enter("super-wizard") as any);
+bot.hears(/^#自我介紹/g, userController.updateUserInfo);
+bot.hears(/^#配對條件/g, userController.updateFilter);
 
-// bot.help(ctx => ctx.reply("Send me a sticker"));
-// bot.on("sticker", ctx => ctx.reply("👍"));
-// bot.hears("hi", ctx => ctx.reply("Hey there"));
+bot.on("message", async ctx => {
+    const hasPhoto = Boolean((ctx as any)?.message?.photo);
 
-// bot.telegram.sendMessage("234392020", "AAA");
+    if (hasPhoto) {
+        await userController.uploadPhotos(ctx);
+        return;
+    }
+});
 
 const app = express();
 app.use(bot.webhookCallback("/"));
 
-app.listen(5000, () => {
-    console.log("TG Lover bot listening on port 5000!");
-});
+app.listen(5000, () => console.log("TG Lover bot listening on port 5000!"));
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));

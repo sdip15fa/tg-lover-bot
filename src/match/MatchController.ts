@@ -39,32 +39,8 @@ export class MatchController {
             const matched = await this.matchService.vote(ctx.from.id, targetId, true);
 
             if (matched && target && me) {
-                await ctx.reply(MatchMessage.MATCHED.replace("{target_name}", `<b>${target.name!}</b>`).replace("{target_username}", target.username!), {
-                    parse_mode: "HTML",
-                });
-
-                await ctx.telegram.sendMessage(
-                    targetId,
-                    `${MatchMessage.MATCHED.replace("{target_name}", `<b>${me.name!}</b>`).replace("{target_username}", me.username!)}\n\n${MatchMessage.MATCHED_PERSON_AS_BElOW}`,
-                    {
-                        parse_mode: "HTML",
-                    }
-                );
-
-                const photoURLs = await this.userPhotoService.getPhotoURLs(me.telegramId);
-                const template = UserConverter.template(me);
-
-                if (photoURLs.length > 0) {
-                    await ctx.telegram.sendMediaGroup(
-                        targetId,
-                        photoURLs.map(url => ({
-                            type: "photo",
-                            media: url,
-                        })) as InputMediaPhoto[]
-                    );
-                }
-
-                await ctx.telegram.sendMessage(targetId, template);
+                await ctx.reply(MatchMessage.MATCHED.replace("{target_name}", `<b>${target.name!}</b>`).replace("{target_username}", target.username!), {parse_mode: "HTML"});
+                await this.notifyMatchTarget(ctx, targetId);
             }
         } catch (e) {
             console.log(e);
@@ -77,18 +53,17 @@ export class MatchController {
         try {
             const targetId = `${ctx.match.input}`.replace(`${MatchAction.MATCH_DISLIKE}#`, "");
             await this.matchService.vote(ctx.from.id, targetId, false);
-            await this.match(ctx);
         } catch (e) {
             console.log(e);
         }
+
+        await this.match(ctx);
     };
 
     match = async ctx => {
         try {
             await this.registerCheck(ctx);
             const user = await this.matchService.luckyPick(ctx.from.id);
-
-            console.log("HIHI", user?.telegramId);
 
             if (!user) {
                 await ctx.replyWithHTML(MatchMessage.NO_MATCH);
@@ -117,5 +92,36 @@ export class MatchController {
         } catch (e) {
             console.log(e);
         }
+    };
+
+    private notifyMatchTarget = async (ctx, targetId: string) => {
+        const me = await this.userService.get(ctx.from.id);
+
+        if (!me) {
+            return;
+        }
+
+        await ctx.telegram.sendMessage(
+            targetId,
+            `${MatchMessage.MATCHED.replace("{target_name}", `<b>${me.name!}</b>`).replace("{target_username}", me.username!)}\n\n${MatchMessage.MATCHED_PERSON_AS_BElOW}`,
+            {
+                parse_mode: "HTML",
+            }
+        );
+
+        const photoURLs = await this.userPhotoService.getPhotoURLs(me.telegramId);
+        const template = UserConverter.template(me);
+
+        if (photoURLs.length > 0) {
+            await ctx.telegram.sendMediaGroup(
+                targetId,
+                photoURLs.map(url => ({
+                    type: "photo",
+                    media: url,
+                })) as InputMediaPhoto[]
+            );
+        }
+
+        await ctx.telegram.sendMessage(targetId, template);
     };
 }

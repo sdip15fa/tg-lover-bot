@@ -5,9 +5,11 @@ import {Container} from "typescript-ioc";
 import {MatchController} from "./match/MatchController";
 import express from "express";
 import {UserController} from "./user/UserController";
+import {MiscellaneousController} from "./miscellaneous/MiscellaneousController";
 
 const matchController = Container.get(MatchController);
 const userController = Container.get(UserController);
+const miscellaneousController = Container.get(MiscellaneousController);
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "");
 
@@ -19,12 +21,16 @@ bot.start((ctx: any) => ctx.scene.enter("register"));
 
 bot.command("register", (ctx: any) => ctx.scene.enter("register"));
 bot.command("match", matchController.match);
+bot.command("recent_liked", matchController.recentLikedUsers);
+bot.command("recent_matched", matchController.recentMatchedUsers);
 bot.command("update_info", userController.askForUserInfo);
 bot.command("upload_photos", userController.askForUploadPhotos);
 bot.command("clear_photos", userController.clearPhotos);
 bot.command("update_filter", userController.askForFilter);
 bot.command("my_info", userController.myInfo);
 bot.command("my_filter", userController.myFilter);
+bot.command("donate", miscellaneousController.donate);
+bot.command("feedback", miscellaneousController.feedback);
 
 bot.action(/MATCH_LIKE#(.+)/, matchController.like);
 bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);

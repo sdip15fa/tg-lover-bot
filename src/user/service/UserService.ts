@@ -13,10 +13,14 @@ export class UserService {
     constructor(
         @Inject
         private userPhotoService: UserPhotoService,
-
         @Inject
         private photoService: PhotoService
     ) {}
+
+    async list(ids: string[]): Promise<UserView[]> {
+        const result = await UserService.userRepository.select().whereIn("telegram_id", ids);
+        return result.map(UserConverter.view);
+    }
 
     async get(id: string): Promise<UserView | null> {
         const user: User = (await UserService.userRepository.select().where({telegram_id: id}))?.[0];

@@ -6,3 +6,7 @@ clear_photos - 清除所有個人照片
 my_info - 預覽個人資料
 update_filter - 更新配對條件
 my_filter - 預覽配對條件
+recent_liked - 最近喜歡的五個對象
+recent_matched - 最近成功配對的五個對象
+donate - 課金贊助窮三代IT狗
+feedback - 意見回饋 / 投訴

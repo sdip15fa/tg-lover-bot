@@ -8,6 +8,7 @@ import {InputMediaPhoto} from "telegraf/types";
 import {Markup} from "telegraf";
 import {MatchAction} from "./constant/MatchAction";
 import {UserService} from "../user/service/UserService";
+import {UserView} from "../common/view/user/UserView";
 
 @Singleton
 export class MatchController {
@@ -123,5 +124,62 @@ export class MatchController {
         }
 
         await ctx.telegram.sendMessage(targetId, template);
+    };
+
+    recentLikedUsers = async ctx => {
+        try {
+            await this.registerCheck(ctx);
+            const users = await this.matchService.recentLikedUsers(ctx.from.id);
+
+            if (users.length === 0) {
+                await ctx.replyWithHTML(MatchMessage.NO_RECENT_LIKED_USERS);
+                return;
+            }
+
+            await ctx.reply(MatchMessage.RECENT_LIKED_PERSON_AS_BElOW.replace("{x}", users.length.toString()));
+            await this.replyWithUsers(ctx, users);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    recentMatchedUsers = async ctx => {
+        try {
+            await this.registerCheck(ctx);
+            const users = await this.matchService.bidirectionalMatchedUsers(ctx.from.id);
+
+            if (users.length === 0) {
+                await ctx.replyWithHTML(MatchMessage.NO_RECENT_MATCHED_USERS);
+                return;
+            }
+
+            await ctx.reply(MatchMessage.RECENT_MATCHED_PERSON_AS_BElOW.replace("{x}", users.length.toString()));
+            await this.replyWithUsers(ctx, users, true);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    private replyWithUsers = async (ctx, users: UserView[], showMatchedMessage?: boolean) => {
+        const userPhotos = await this.userPhotoService.batchFetchPhotoURLs(users.map(user => user.telegramId));
+
+        for (const user of users) {
+            const photoURLs = userPhotos.filter(userPhoto => userPhoto.telegram_id === user.telegramId).map(userPhoto => userPhoto.photo_url);
+
+            if (photoURLs.length > 0) {
+                await ctx.replyWithMediaGroup(
+                    photoURLs.map(url => ({
+                        type: "photo",
+                        media: url,
+                    })) as InputMediaPhoto[]
+                );
+            }
+
+            await ctx.reply(UserConverter.template(user));
+
+            if (showMatchedMessage) {
+                await ctx.reply(MatchMessage.MATCHED.replace("{target_name}", `<b>${user.name!}</b>`).replace("{target_username}", user.username!), {parse_mode: "HTML"});
+            }
+        }
     };
 }

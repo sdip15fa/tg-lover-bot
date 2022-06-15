@@ -13,9 +13,12 @@ export class UserPhotoService {
         return Number(result?.[0].count) || 0;
     }
 
+    async batchFetchPhotoURLs(ids: string[]): Promise<UserPhoto[]> {
+        return UserPhotoService.userPhotoRepository.select<UserPhoto[]>().whereIn("telegram_id", ids).limit(5);
+    }
+
     async getPhotoURLs(id: string): Promise<string[]> {
-        const userPhotos = await UserPhotoService.userPhotoRepository.select<UserPhoto[]>().where({telegram_id: id}).limit(5);
-        return userPhotos.map(x => x.photo_url);
+        return UserPhotoService.userPhotoRepository.pluck("photo_url").where({telegram_id: id}).limit(5);
     }
 
     async addPhoto(id: string, photoURL: string): Promise<void> {

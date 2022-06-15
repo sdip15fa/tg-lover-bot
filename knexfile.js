@@ -21,13 +21,7 @@ module.exports = {
 
     production: {
         client: "postgresql",
-        connection: {
-            host: "dokku-postgres-tg-lover-bot",
-            port: 5432,
-            database: "tg_lover_bot",
-            user: "postgres",
-            password: "e5d52f311c66763c430c3b47b9872687",
-        },
+        connection: process.env.DATABASE_URL,
         pool: {
             min: 2,
             max: 10,

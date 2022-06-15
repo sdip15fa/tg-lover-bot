@@ -22,7 +22,7 @@ module.exports = {
     production: {
         client: "postgresql",
         connection: {
-            host: "tg_lover_db",
+            host: "localhost",
             port: 5432,
             database: "tg_lover_bot",
             user: "postgres",

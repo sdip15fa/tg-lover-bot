@@ -2,7 +2,7 @@ const propertyNames = Object.freeze({
     name: "暱稱",
     gender: "性別",
     age: "年齡",
-    heightRange: "身高",
+    height: "身高",
     goalRelationship: "尋找對象關係",
     smoking: "是否吸煙",
     occupation: "職業",

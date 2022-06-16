@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "DEBUG=knex:query ts-node src/app.ts",
+    "start-dev": "DEBUG=knex:query ts-node src/app.ts",
     "format": "prettier --write 'src/**/*.ts'",
     "migrate:latest": "knex migrate:latest",
     "fake": "DEBUG=knex:query ts-node src/task/generateFakeUsers.ts"

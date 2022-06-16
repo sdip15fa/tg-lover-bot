@@ -1,4 +1,3 @@
-import "dotenv/config";
 import {Scenes, session, Telegraf} from "telegraf";
 import {registerScene} from "./register/RegisterScene";
 import {Container} from "typescript-ioc";
@@ -6,6 +5,8 @@ import {MatchController} from "./match/MatchController";
 import express from "express";
 import {UserController} from "./user/UserController";
 import {MiscellaneousController} from "./miscellaneous/MiscellaneousController";
+
+require("dotenv").config();
 
 const matchController = Container.get(MatchController);
 const userController = Container.get(UserController);

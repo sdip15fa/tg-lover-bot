@@ -7,6 +7,7 @@ import {Knex} from "knex";
 import {User} from "../../user/interface/User";
 import {UserConverter} from "../../user/service/UserConverter";
 import {UserView} from "../../common/view/user/UserView";
+import first from "lodash/first";
 
 @Singleton
 export class MatchService {
@@ -28,46 +29,20 @@ export class MatchService {
         return targetIds.map(id => users.find(u => u.telegramId === id));
     }
 
-    async recentMatchedIds(userId: string): Promise<string[]> {
-        return MatchService.matchRepository.pluck("target_id").where({user_id: userId}).andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"));
-    }
-
     async bidirectionalMatchedUsers(userId: string): Promise<UserView[]> {
-        const result = await db.raw(
-            `
-                SELECT target_id
-                FROM "matches" AS "m1"
-                WHERE "user_id" = ?
-                  AND "like" = true
-                  AND target_id IN (SELECT user_id FROM matches m2 WHERE m2.target_id = m1.user_id AND m2.like = true)
-                ORDER BY "created_at" DESC
-                LIMIT 5
-            `,
-            [userId]
-        );
-
-        const targetIds = result.rows.map(({target_id}) => target_id);
+        const targetIds = await MatchService.matchRepository
+            .pluck("target_id")
+            .from("matches AS m1")
+            .where({user_id: userId, like: true})
+            .andWhere("target_id", "IN", MatchService.matchRepository.select("user_id").from("matches AS m2").where({target_id: userId, like: true}))
+            .orderBy("created_at", "desc")
+            .limit(5);
 
         return this.userService.list(targetIds);
     }
 
-    async bidirectionalMatchedIds(userId: string): Promise<string[]> {
-        const result = await db.raw(
-            `
-                SELECT DISTINCT target_id
-                FROM "matches" AS "m1"
-                WHERE "user_id" = ?
-                  AND "like" = true
-                  AND target_id IN (SELECT user_id FROM matches m2 WHERE m2.target_id = m1.user_id AND m2.like = true)
-            `,
-            [userId]
-        );
-
-        return result.rows.map(({target_id}) => target_id);
-    }
-
     async vote(userId: string, targetId: string, like: boolean): Promise<boolean> {
-        const recentMatchIds = await this.recentMatchedIds(userId);
+        const recentMatchIds = await MatchService.recentMatchedIds(userId);
 
         if (recentMatchIds.includes(targetId)) {
             await MatchService.matchRepository.update({like}).where({user_id: userId, target_id: targetId}).andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"));
@@ -75,7 +50,7 @@ export class MatchService {
             await MatchService.matchRepository.insert({user_id: userId, target_id: targetId, like});
         }
 
-        const bidirectionalMatchIds = await this.bidirectionalMatchedIds(userId);
+        const bidirectionalMatchIds = await MatchService.bidirectionalMatchedIds(userId);
 
         return bidirectionalMatchIds.includes(targetId);
     }
@@ -83,25 +58,23 @@ export class MatchService {
     async luckyPick(userId: string): Promise<UserView | null> {
         const currentUser = await this.userService.get(userId);
 
-        if (!currentUser) {
-            return null;
-        }
+        if (!currentUser) return null;
 
-        const recentMatchIds = await this.recentMatchedIds(userId);
-        const bidirectionalMatchIds = await this.bidirectionalMatchedIds(userId);
+        const recentMatchedIds = await MatchService.recentMatchedIds(userId);
+        const bidirectionalMatchedIds = await MatchService.bidirectionalMatchedIds(userId);
 
         const luckyPickQuery = MatchService.userRepository.select<User[]>();
         MatchService.filterGender(luckyPickQuery, currentUser.gender!, currentUser.filterGender!);
         luckyPickQuery.where({registered: true});
-        luckyPickQuery.whereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
-        luckyPickQuery.whereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
-        luckyPickQuery.whereNotIn("telegram_id", [userId, ...recentMatchIds, ...bidirectionalMatchIds]);
+        luckyPickQuery.andWhereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
+        luckyPickQuery.andWhereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
+        luckyPickQuery.andWhereNot("telegram_id", "IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds]);
         luckyPickQuery.orderByRaw("RANDOM()");
         luckyPickQuery.limit(1);
 
         const result = await luckyPickQuery;
 
-        const pickedUser = result?.[0];
+        const pickedUser = first(result);
 
         if (!pickedUser) {
             return null;
@@ -121,6 +94,19 @@ export class MatchService {
             default:
                 break;
         }
+    }
+
+    private static async recentMatchedIds(userId: string): Promise<string[]> {
+        return MatchService.matchRepository.pluck("target_id").where({user_id: userId}).andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"));
+    }
+
+    private static async bidirectionalMatchedIds(userId: string): Promise<string[]> {
+        return MatchService.matchRepository
+            .pluck("target_id")
+            .distinct()
+            .from("matches AS m1")
+            .where({user_id: userId, like: true})
+            .andWhere("target_id", "IN", MatchService.matchRepository.select("user_id").from("matches AS m2").where({target_id: userId, like: true}));
     }
 
     private static get userRepository() {

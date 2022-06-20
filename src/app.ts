@@ -39,7 +39,14 @@ bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);
 bot.hears(/^#自我介紹/g, userController.updateUserInfo);
 bot.hears(/^#配對條件/g, userController.updateFilter);
 
-bot.on("message", async ctx => {
+bot.on("web_app_data", async ctx => {
+    if (ctx.update.message.web_app_data.button_text === "更新自我介紹") {
+        await userController.updateUserInfo(ctx);
+        return;
+    }
+});
+
+bot.on("photo", async ctx => {
     const hasPhoto = Boolean((ctx as any)?.message?.photo);
 
     if (hasPhoto) {

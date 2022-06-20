@@ -26,7 +26,8 @@ export class RegisterController {
 
             if (isRegistered) {
                 await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
-                return ctx.scene.leave();
+                ctx.scene.leave();
+                return;
             }
 
             const agreedTerms = await this.registerService.isAgreeTerms(ctx.from.id);

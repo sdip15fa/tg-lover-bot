@@ -10,6 +10,8 @@ import {ValidationError} from "class-validator";
 import {LocalizePropertyUtil} from "../common/core/validation/LocalizePropertyUtil";
 import {UserFilterConverter} from "./service/UserFilterConverter";
 import {RegisterService} from "../register/RegisterService";
+import {Markup} from "telegraf";
+import base64 from "base64-utf8";
 
 export class UserController {
     constructor(
@@ -37,10 +39,14 @@ export class UserController {
     askForUserInfo = async ctx => {
         try {
             await this.registerCheck(ctx);
-            await ctx.replyWithMarkdownV2(UserMessage.USER_INFO_SCHEMA);
-            await ctx.reply(UserMessage.USER_INFO_SAMPLE, {
-                reply_markup: {force_reply: true, input_field_placeholder: UserMessage.YOUR_USER_INFO},
-            });
+            const user = await this.userService.get(ctx.from.id);
+
+            console.log(`${process.env.USER_INFO_FORM}?userData=${base64.encode(JSON.stringify(user))}`);
+
+            await ctx.replyWithMarkdownV2(
+                UserMessage.ASK_FOR_USER_INFO,
+                Markup.keyboard([Markup.button.webApp(UserMessage.UPDATE_USER_INFO, `${process.env.USER_INFO_FORM}?userData=${base64.encode(JSON.stringify(user))}`)]).resize()
+            );
         } catch (e) {
             console.log(e);
         }
@@ -70,10 +76,13 @@ export class UserController {
     updateUserInfo = async ctx => {
         try {
             await this.registerCheck(ctx);
-            const userInfoYAML = ctx.match.input;
-            const userView = await this.userInfoParser.parseYAML(ctx.from.id, userInfoYAML);
-            await this.userService.upsert(userView);
-            await ctx.reply(UserMessage.USER_INFO_UPDATED);
+            await this.userService.upsert({
+                telegramId: ctx.from.id,
+                ...JSON.parse(ctx.update.message.web_app_data.data),
+            });
+            await ctx.reply(UserMessage.USER_INFO_UPDATED, {
+                ...Markup.removeKeyboard(),
+            });
         } catch (e) {
             console.log(e);
             if (Array.isArray(e) && e[0] instanceof ValidationError) {

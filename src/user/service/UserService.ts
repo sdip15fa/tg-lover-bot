@@ -7,6 +7,7 @@ import {PhotoSize} from "typegram";
 import {RegisterMessage} from "../../register/constant/RegisterMessage";
 import {UserPhotoService} from "./UserPhotoService";
 import {PhotoService} from "../../photo/service/PhotoService";
+import first from "lodash/first";
 
 @Singleton
 export class UserService {
@@ -23,7 +24,7 @@ export class UserService {
     }
 
     async get(id: string): Promise<UserView | null> {
-        const user: User = (await UserService.userRepository.select().where({telegram_id: id}))?.[0];
+        const user: User = first(await UserService.userRepository.select().where({telegram_id: id}));
 
         if (!user) {
             return null;

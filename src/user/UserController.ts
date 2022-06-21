@@ -1,24 +1,17 @@
 import {Inject} from "typescript-ioc";
-import {UserInfoParser} from "./service/UserInfoParser";
 import {UserService} from "./service/UserService";
 import {UserMessage} from "./constant/UserMessage";
 import {InputMediaPhoto} from "telegraf/types";
 import {UserPhotoService} from "./service/UserPhotoService";
 import {UserConverter} from "./service/UserConverter";
-import {UserFilterParser} from "./service/UserFilterParser";
-import {ValidationError} from "class-validator";
-import {LocalizePropertyUtil} from "../common/core/validation/LocalizePropertyUtil";
 import {UserFilterConverter} from "./service/UserFilterConverter";
 import {RegisterService} from "../register/RegisterService";
 import {Markup} from "telegraf";
 import base64 from "base64-utf8";
+import {omit, pick} from "lodash";
 
 export class UserController {
     constructor(
-        @Inject
-        private readonly userInfoParser: UserInfoParser,
-        @Inject
-        private readonly userFilterParser: UserFilterParser,
         @Inject
         private readonly userService: UserService,
         @Inject
@@ -40,12 +33,11 @@ export class UserController {
         try {
             await this.registerCheck(ctx);
             const user = await this.userService.get(ctx.from.id);
-
-            console.log(`${process.env.USER_INFO_FORM}?userData=${base64.encode(JSON.stringify(user))}`);
+            const userData = omit(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound"]);
 
             await ctx.replyWithMarkdownV2(
                 UserMessage.ASK_FOR_USER_INFO,
-                Markup.keyboard([Markup.button.webApp(UserMessage.UPDATE_USER_INFO, `${process.env.USER_INFO_FORM}?userData=${base64.encode(JSON.stringify(user))}`)]).resize()
+                Markup.keyboard([Markup.button.webApp(UserMessage.UPDATE_USER_INFO, `${process.env.USER_INFO_FORM}?userData=${base64.encode(JSON.stringify(userData))}`)]).resize()
             );
         } catch (e) {
             console.log(e);
@@ -64,10 +56,13 @@ export class UserController {
     askForFilter = async ctx => {
         try {
             await this.registerCheck(ctx);
-            await ctx.replyWithMarkdownV2(UserMessage.FILTER_SCHEMA);
-            await ctx.reply(UserMessage.FILTER_SAMPLE, {
-                reply_markup: {force_reply: true, input_field_placeholder: UserMessage.YOUR_FILTER},
-            });
+            const user = await this.userService.get(ctx.from.id);
+            const userData = pick(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound"]);
+
+            await ctx.replyWithMarkdownV2(
+                UserMessage.ASK_FOR_FILER,
+                Markup.keyboard([Markup.button.webApp(UserMessage.UPDATE_FILTER, `${process.env.USER_FILTER_FORM}?userData=${base64.encode(JSON.stringify(userData))}`)]).resize()
+            );
         } catch (e) {
             console.log(e);
         }
@@ -80,22 +75,9 @@ export class UserController {
                 telegramId: ctx.from.id,
                 ...JSON.parse(ctx.update.message.web_app_data.data),
             });
-            await ctx.reply(UserMessage.USER_INFO_UPDATED, {
-                ...Markup.removeKeyboard(),
-            });
+            await ctx.reply(UserMessage.USER_INFO_UPDATED, Markup.removeKeyboard());
         } catch (e) {
             console.log(e);
-            if (Array.isArray(e) && e[0] instanceof ValidationError) {
-                const validationErrors: ValidationError[] = e;
-
-                await ctx.replyWithHTML(
-                    `<b>${UserMessage.USER_INFO_VALIDATION_ERROR}</b>\n${validationErrors
-                        .map(v => `<b>${LocalizePropertyUtil.getPropertyName(v.property)}:</b>\n${(v.constraints ? Object.values(v.constraints) : []).map(_ => `- ${_}`).join("\n")}`)
-                        .join("\n")}`
-                );
-            } else {
-                await ctx.reply(UserMessage.USER_INFO_FORMAT_ERROR);
-            }
             return;
         }
     };
@@ -103,21 +85,13 @@ export class UserController {
     updateFilter = async ctx => {
         try {
             await this.registerCheck(ctx);
-            const userFilterYAML = ctx.match.input;
-            const userFilterView = await this.userFilterParser.parseYAML(ctx.from.id, userFilterYAML);
             await this.userService.upsert({
-                ...userFilterView,
                 telegramId: ctx.from.id,
+                ...JSON.parse(ctx.update.message.web_app_data.data),
             });
-            await ctx.reply(UserMessage.USER_FILTER_UPDATED);
+            await ctx.reply(UserMessage.USER_FILTER_UPDATED, Markup.removeKeyboard());
         } catch (e) {
             console.log(e);
-
-            if (Array.isArray(e) && typeof e[0] === "string") {
-                await ctx.replyWithHTML(`<b>${UserMessage.USER_INFO_VALIDATION_ERROR}</b>\n${e.map(v => `- ${v}`).join("\n")}`);
-            } else {
-                await ctx.replyWithHTML(`<b>${UserMessage.USER_INFO_VALIDATION_ERROR}</b>`);
-            }
         }
     };
 

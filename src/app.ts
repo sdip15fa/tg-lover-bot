@@ -44,6 +44,11 @@ bot.on("web_app_data", async ctx => {
         await userController.updateUserInfo(ctx);
         return;
     }
+
+    if (ctx.update.message.web_app_data.button_text === "更新配對條件") {
+        await userController.updateFilter(ctx);
+        return;
+    }
 });
 
 bot.on("photo", async ctx => {

@@ -2,14 +2,20 @@ import {Scenes, session, Telegraf} from "telegraf";
 import {registerScene} from "./register/RegisterScene";
 import {Container} from "typescript-ioc";
 import {MatchController} from "./match/MatchController";
-import express from "express";
-import {UserController} from "./user/UserController";
+import {UserInfoController} from "./user/controller/UserInfoController";
 import {MiscellaneousController} from "./miscellaneous/MiscellaneousController";
+import {UserFilterController} from "./user/controller/UserFilterController";
+import {UserPhotoController} from "./user/controller/UserPhotoController";
+import {CommonController} from "./common/controller/CommonController";
+import {server} from "./common/server";
 
 require("dotenv").config();
 
+const commonController = Container.get(CommonController);
 const matchController = Container.get(MatchController);
-const userController = Container.get(UserController);
+const userInfoController = Container.get(UserInfoController);
+const userFilterController = Container.get(UserFilterController);
+const userPhotoController = Container.get(UserPhotoController);
 const miscellaneousController = Container.get(MiscellaneousController);
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "");
@@ -21,50 +27,29 @@ bot.use(stage.middleware());
 bot.start((ctx: any) => ctx.scene.enter("register"));
 
 bot.command("register", (ctx: any) => ctx.scene.enter("register"));
+
 bot.command("match", matchController.match);
 bot.command("recent_liked", matchController.recentLikedUsers);
 bot.command("recent_matched", matchController.recentMatchedUsers);
-bot.command("update_info", userController.askForUserInfo);
-bot.command("upload_photos", userController.askForUploadPhotos);
-bot.command("clear_photos", userController.clearPhotos);
-bot.command("update_filter", userController.askForFilter);
-bot.command("my_info", userController.myInfo);
-bot.command("my_filter", userController.myFilter);
-bot.command("donate", miscellaneousController.donate);
-bot.command("feedback", miscellaneousController.feedback);
 
 bot.action(/MATCH_LIKE#(.+)/, matchController.like);
 bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);
 
-bot.hears(/^#自我介紹/g, userController.updateUserInfo);
-bot.hears(/^#配對條件/g, userController.updateFilter);
+bot.command("update_info", userInfoController.askForUserInfo);
+bot.command("my_info", userInfoController.myInfo);
+bot.hears(/^#自我介紹/g, userInfoController.updateUserInfo);
 
-bot.on("web_app_data", async ctx => {
-    if (ctx.update.message.web_app_data.button_text === "更新自我介紹") {
-        await userController.updateUserInfo(ctx);
-        return;
-    }
+bot.command("update_filter", userFilterController.askForFilter);
+bot.command("my_filter", userFilterController.myFilter);
+bot.hears(/^#配對條件/g, userFilterController.updateFilter);
 
-    if (ctx.update.message.web_app_data.button_text === "更新配對條件") {
-        await userController.updateFilter(ctx);
-        return;
-    }
-});
+bot.command("donate", miscellaneousController.donate);
+bot.command("feedback", miscellaneousController.feedback);
 
-bot.on("photo", async ctx => {
-    const hasPhoto = Boolean((ctx as any)?.message?.photo);
+bot.on("web_app_data", commonController.webAppData);
 
-    if (hasPhoto) {
-        await userController.uploadPhotos(ctx);
-        return;
-    }
-});
+bot.on("photo", commonController.photo);
+bot.command("upload_photos", userPhotoController.askForUploadPhotos);
+bot.command("clear_photos", userPhotoController.clearPhotos);
 
-const app = express();
-app.use(bot.webhookCallback("/"));
-
-app.listen(5000, () => console.log("TG Lover bot listening on port 5000!"));
-
-// Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+server(bot);

@@ -1,5 +1,3 @@
-const MUST_REGISTER_BEFORE_USE = "請先完成註冊才能使用 TG Lover 服務😅";
-
 const NO_MATCH = "暫時已經沒有符合您配對條件的對象，請稍後再試，或者您可稍為擴闊您的配對條件🥲";
 const LIKE = "💗喜歡";
 const DISLIKE = "🙅‍不喜歡";
@@ -14,7 +12,6 @@ const NO_RECENT_LIKED_USERS = "您目前還沒有喜歡的對象🥲";
 const NO_RECENT_MATCHED_USERS = "您目前還沒有成功配對的對象🥲";
 
 export const MatchMessage = Object.freeze({
-    MUST_REGISTER_BEFORE_USE,
     NO_MATCH,
     LIKE,
     DISLIKE,

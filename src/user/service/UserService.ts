@@ -7,7 +7,6 @@ import {PhotoSize} from "typegram";
 import {RegisterMessage} from "../../register/constant/RegisterMessage";
 import {UserPhotoService} from "./UserPhotoService";
 import {PhotoService} from "../../photo/service/PhotoService";
-import first from "lodash/first";
 
 @Singleton
 export class UserService {
@@ -18,19 +17,19 @@ export class UserService {
         private photoService: PhotoService
     ) {}
 
+    async get(id: string): Promise<UserView | null> {
+        const user: User = await UserService.userRepository.select().where({telegram_id: id}).first();
+        if (!user) return null;
+        return UserConverter.view(user);
+    }
+
     async list(ids: string[]): Promise<UserView[]> {
         const result = await UserService.userRepository.select().whereIn("telegram_id", ids);
         return result.map(UserConverter.view);
     }
 
-    async get(id: string): Promise<UserView | null> {
-        const user: User = first(await UserService.userRepository.select().where({telegram_id: id}));
-
-        if (!user) {
-            return null;
-        }
-
-        return UserConverter.view(user);
+    async updateUserData(telegramId: string, data: Partial<UserView>) {
+        await this.upsert({telegramId, ...data});
     }
 
     async upsert(data: Partial<UserView>) {

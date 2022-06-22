@@ -47,7 +47,7 @@ export class MockUserFactory {
         userView.filterHeightLowerBound = 140;
         userView.filterHeightUpperBound = 220;
 
-        await this.userService.upsert(userView);
+        await this.userService.updateUserData(userView.telegramId, userView);
         await Promise.all([faker.image.avatar(), faker.image.avatar(), faker.image.avatar()].map(url => this.userPhotoService.addPhoto(userView.telegramId, url)));
     }
 }

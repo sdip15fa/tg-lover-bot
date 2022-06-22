@@ -65,10 +65,10 @@ export class MatchService {
 
         const luckyPickQuery = MatchService.userRepository.select<User[]>();
         MatchService.filterGender(luckyPickQuery, currentUser.gender!, currentUser.filterGender!);
-        luckyPickQuery.where({registered: true});
+        luckyPickQuery.andWhere({registered: true});
         luckyPickQuery.andWhereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
         luckyPickQuery.andWhereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
-        luckyPickQuery.andWhereNot("telegram_id", "IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds]);
+        luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds]);
         luckyPickQuery.orderByRaw("RANDOM()");
         luckyPickQuery.limit(1);
 

@@ -17,7 +17,11 @@ export class ProfileConcern {
     sendProfile = async (ctx: any, user: UserView, targetId: string, extra?: any) => {
         const template = UserConverter.template(user);
         const photoURLs = await this.userPhotoService.getPhotoURLs(user.telegramId);
-        await this.sendProfilePhotos(ctx, photoURLs, targetId);
+        try {
+            await this.sendProfilePhotos(ctx, photoURLs, targetId);
+        } catch (e) {
+            console.log(`send photos error, photoURLs: ${JSON.stringify(photoURLs)}`, e);
+        }
         await ctx.telegram.sendMessage(targetId, template, extra);
     };
 

@@ -10,7 +10,9 @@ import {CommonController} from "./common/controller/CommonController";
 import {server} from "./common/server";
 import {AdminController} from "./admin/AdminController";
 
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+}
 
 const commonController = Container.get(CommonController);
 const matchController = Container.get(MatchController);

@@ -27,6 +27,7 @@ export class UserInfoController {
         try {
             if (!(await this.registerConcern.registerCheck(ctx))) return;
             const encodedUserData = this.webFormConcern.encodeData(await this.userData(ctx));
+
             await ctx.reply(UserInfoMessage.ASK_FOR_UPDATE_USER_INFO, Markup.keyboard([this.WEB_FORM_BUTTON(encodedUserData)]).resize());
         } catch (e) {
             console.log(e);

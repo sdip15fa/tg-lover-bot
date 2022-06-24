@@ -6,7 +6,7 @@ export class WebFormConcern {
     constructor() {}
 
     encodeData = (data: any): string => {
-        return base64.encode(JSON.stringify(data));
+        return encodeURIComponent(base64.encode(JSON.stringify(data)));
     };
 
     parsedUserData = (ctx: any) => {

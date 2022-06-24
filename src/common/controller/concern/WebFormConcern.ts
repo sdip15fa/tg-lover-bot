@@ -1,12 +1,14 @@
 import {Singleton} from "typescript-ioc";
-import base64 from "base64-utf8";
+import base64 from "js-base64";
 
 @Singleton
 export class WebFormConcern {
     constructor() {}
 
     encodeData = (data: any): string => {
-        return encodeURIComponent(base64.encode(JSON.stringify(data)));
+        const base64String = base64.encode(JSON.stringify(data));
+
+        return encodeURIComponent(base64String);
     };
 
     parsedUserData = (ctx: any) => {

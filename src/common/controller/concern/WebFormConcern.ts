@@ -13,7 +13,9 @@ export class WebFormConcern {
         return JSON.parse(ctx.update.message.web_app_data.data);
     };
 
-    webFormURL = (url: string, userData: any) => {
+    webFormURL = (url: string, userData?: any) => {
+        if (!userData) return url;
+
         return `${url}?userData=${userData}`;
     };
 }

@@ -4,9 +4,9 @@ import {User} from "../interface/User";
 import {UserView} from "../../common/view/user/UserView";
 import {UserConverter} from "./UserConverter";
 import {PhotoSize} from "typegram";
-import {RegisterMessage} from "../../register/constant/RegisterMessage";
 import {UserPhotoService} from "./UserPhotoService";
 import {PhotoService} from "../../photo/service/PhotoService";
+import {UserPhotoMessage} from "../constant/UserPhotoMessage";
 
 @Singleton
 export class UserService {
@@ -17,8 +17,19 @@ export class UserService {
         private photoService: PhotoService
     ) {}
 
+    async isBlocked(id: string): Promise<boolean> {
+        const user = await UserService.userRepository.select().where({telegram_id: id}).first();
+        return Boolean(user.blocked);
+    }
+
     async get(id: string): Promise<UserView | null> {
         const user: User = await UserService.userRepository.select().where({telegram_id: id}).first();
+        if (!user) return null;
+        return UserConverter.view(user);
+    }
+
+    async findByUsername(username: string): Promise<UserView | null> {
+        const user: User = await UserService.userRepository.select().where({username}).first();
         if (!user) return null;
         return UserConverter.view(user);
     }
@@ -46,7 +57,7 @@ export class UserService {
         const photoCount = await this.userPhotoService.getPhotosCount(id);
 
         if (photoCount >= 5) {
-            throw new Error(RegisterMessage.MAX_UPLOAD_PHOTO_ERROR);
+            throw new Error(UserPhotoMessage.MAX_UPLOAD_PHOTO_ERROR);
         }
 
         return this.photoService.uploadPhoto(await this.photoService.getPhoto(photo.file_id));

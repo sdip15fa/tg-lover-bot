@@ -18,7 +18,7 @@ export class UserPhotoController {
 
     askForUploadPhotos = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
             await ctx.reply(UserPhotoMessage.ASK_FOR_PHOTOS);
         } catch (e) {
             console.log(e);

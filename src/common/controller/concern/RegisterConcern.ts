@@ -14,7 +14,9 @@ export class RegisterConcern {
 
         if (!isRegistered) {
             await ctx.replyWithHTML(CommonMessage.MUST_REGISTER_BEFORE_USE);
-            return;
+            return false;
         }
+
+        return true;
     };
 }

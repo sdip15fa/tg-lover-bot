@@ -11,6 +11,8 @@ const RECENT_MATCHED_PERSON_AS_BElOW = "您最近成功配對的{x}個對象如�
 const NO_RECENT_LIKED_USERS = "您目前還沒有喜歡的對象🥲";
 const NO_RECENT_MATCHED_USERS = "您目前還沒有成功配對的對象🥲";
 
+const YOU_ARE_BLOCKED = "您的帳號已經被管理員封鎖，請聯絡管理員 @internal_server_error 解除封鎖🤔";
+
 export const MatchMessage = Object.freeze({
     NO_MATCH,
     LIKE,
@@ -21,4 +23,5 @@ export const MatchMessage = Object.freeze({
     NO_RECENT_LIKED_USERS,
     NO_RECENT_MATCHED_USERS,
     RECENT_MATCHED_PERSON_AS_BElOW,
+    YOU_ARE_BLOCKED,
 });

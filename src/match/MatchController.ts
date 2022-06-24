@@ -30,6 +30,8 @@ export class MatchController {
 
     like = async ctx => {
         try {
+            if (await this.blocked(ctx)) return;
+
             const targetId = `${ctx.match.input}`.replace(`${MatchAction.MATCH_LIKE}#`, "");
             const me = await this.userService.get(ctx.from.id);
             const target = await this.userService.get(targetId);
@@ -48,6 +50,8 @@ export class MatchController {
 
     dislike = async ctx => {
         try {
+            if (await this.blocked(ctx)) return;
+
             const targetId = `${ctx.match.input}`.replace(`${MatchAction.MATCH_DISLIKE}#`, "");
             await this.matchService.vote(ctx.from.id, targetId, false);
         } catch (e) {
@@ -59,7 +63,9 @@ export class MatchController {
 
     match = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (await this.blocked(ctx)) return;
+
             const user = await this.matchService.luckyPick(ctx.from.id);
 
             if (!user) {
@@ -75,7 +81,9 @@ export class MatchController {
 
     recentLikedUsers = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (await this.blocked(ctx)) return;
+
             const users = await this.matchService.recentLikedUsers(ctx.from.id);
 
             if (users.length === 0) {
@@ -92,7 +100,9 @@ export class MatchController {
 
     recentMatchedUsers = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (await this.blocked(ctx)) return;
+
             const users = await this.matchService.bidirectionalMatchedUsers(ctx.from.id);
 
             if (users.length === 0) {
@@ -140,5 +150,14 @@ export class MatchController {
 
     private matchedMessage = (target: UserView) => {
         return MatchMessage.MATCHED.replace("{target_name}", `<b>${target.name!}</b>`).replace("{target_username}", target.username!);
+    };
+
+    private blocked = async (ctx: any) => {
+        const blocked = await this.userService.isBlocked(ctx.from.id);
+        if (blocked) {
+            await ctx.replyWithHTML(MatchMessage.YOU_ARE_BLOCKED);
+            return true;
+        }
+        return false;
     };
 }

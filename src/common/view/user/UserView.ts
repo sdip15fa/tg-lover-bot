@@ -27,6 +27,8 @@ export class UserView {
 
     public registered?: boolean;
 
+    public blocked?: boolean;
+
     @IsDefined({message: FieldValidationMessage.IS_DEFINED})
     @IsEnum(Gender, {message: FieldValidationMessage.IS_ENUM})
     public gender: Gender | undefined;

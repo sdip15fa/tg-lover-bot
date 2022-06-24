@@ -15,10 +15,18 @@ registerScene.action(RegisterAction.AGREE_USERNAME_PERMISSION, registerControlle
 registerScene.action(RegisterAction.DISAGREE_USERNAME_PERMISSION, registerController.disagreeUsernamePermission);
 registerScene.action(RegisterAction.UPDATE_FILTER, registerController.askForFilter);
 
-registerScene.hears(/^#自我介紹/g, registerController.createUserInfo);
-registerScene.hears(/^#配對條件/g, registerController.updateFilter);
-
 registerScene.command("clear_photos", registerController.clearPhotos);
+
+registerScene.on("web_app_data", async ctx => {
+    if (ctx.update.message.web_app_data.button_text === "填寫自我介紹") {
+        await registerController.updateUserInfo(ctx);
+        return;
+    }
+    if (ctx.update.message.web_app_data.button_text === "填寫配對條件") {
+        await registerController.updateFilter(ctx);
+        return;
+    }
+});
 
 registerScene.on("message", async ctx => {
     const hasPhoto = Boolean((ctx as any)?.message?.photo);

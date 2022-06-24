@@ -1,13 +1,12 @@
-import {Inject, Singleton} from "typescript-ioc";
 import {db} from "../../common/db";
+import {Inject, Singleton} from "typescript-ioc";
+import {Knex} from "knex";
 import {UserService} from "../../user/service/UserService";
 import {FilterGender} from "../../common/enum/FilterGender";
 import {Gender} from "../../common/enum/Gender";
-import {Knex} from "knex";
 import {User} from "../../user/interface/User";
 import {UserConverter} from "../../user/service/UserConverter";
 import {UserView} from "../../common/view/user/UserView";
-import first from "lodash/first";
 
 @Singleton
 export class MatchService {
@@ -17,10 +16,13 @@ export class MatchService {
     ) {}
 
     async recentLikedUsers(userId: string): Promise<UserView[]> {
+        const blockedIds = await MatchService.blockedIds();
+
         const targetIds = await MatchService.matchRepository
             .pluck("target_id")
             .where({user_id: userId, like: true})
             .andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"))
+            .andWhere("target_id", "NOT IN", blockedIds)
             .orderBy("created_at", "desc")
             .limit(5);
 
@@ -30,11 +32,14 @@ export class MatchService {
     }
 
     async bidirectionalMatchedUsers(userId: string): Promise<UserView[]> {
+        const blockedIds = await MatchService.blockedIds();
+
         const targetIds = await MatchService.matchRepository
             .pluck("target_id")
             .from("matches AS m1")
             .where({user_id: userId, like: true})
             .andWhere("target_id", "IN", MatchService.matchRepository.select("user_id").from("matches AS m2").where({target_id: userId, like: true}))
+            .andWhere("target_id", "NOT IN", blockedIds)
             .orderBy("created_at", "desc")
             .limit(5);
 
@@ -43,6 +48,11 @@ export class MatchService {
 
     async vote(userId: string, targetId: string, like: boolean): Promise<boolean> {
         const recentMatchIds = await MatchService.recentMatchedIds(userId);
+        const blockedIds = await MatchService.blockedIds();
+
+        if (blockedIds.includes(targetId)) {
+            return false;
+        }
 
         if (recentMatchIds.includes(targetId)) {
             await MatchService.matchRepository.update({like}).where({user_id: userId, target_id: targetId}).andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"));
@@ -62,24 +72,19 @@ export class MatchService {
 
         const recentMatchedIds = await MatchService.recentMatchedIds(userId);
         const bidirectionalMatchedIds = await MatchService.bidirectionalMatchedIds(userId);
+        const blockedIds = await MatchService.blockedIds();
 
         const luckyPickQuery = MatchService.userRepository.select<User[]>();
         MatchService.filterGender(luckyPickQuery, currentUser.gender!, currentUser.filterGender!);
         luckyPickQuery.andWhere({registered: true});
         luckyPickQuery.andWhereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
         luckyPickQuery.andWhereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
-        luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds]);
+        luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds, ...blockedIds]);
         luckyPickQuery.orderByRaw("RANDOM()");
         luckyPickQuery.limit(1);
+        const pickedUser = await luckyPickQuery.first();
 
-        const result = await luckyPickQuery;
-
-        const pickedUser = first(result);
-
-        if (!pickedUser) {
-            return null;
-        }
-
+        if (!pickedUser) return null;
         return UserConverter.view(pickedUser);
     }
 
@@ -94,6 +99,10 @@ export class MatchService {
             default:
                 break;
         }
+    }
+
+    private static async blockedIds(): Promise<string[]> {
+        return MatchService.userRepository.pluck("telegram_id").where({blocked: true});
     }
 
     private static async recentMatchedIds(userId: string): Promise<string[]> {

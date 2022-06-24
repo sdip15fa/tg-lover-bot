@@ -5,7 +5,7 @@ import {UserPhotoService} from "../service/UserPhotoService";
 import {Markup} from "telegraf";
 import omit from "lodash/omit";
 import {RegisterConcern} from "../../common/controller/concern/RegisterConcern";
-import {WebFormConcern} from "./concern/WebFormConcern";
+import {WebFormConcern} from "../../common/controller/concern/WebFormConcern";
 import {ProfileConcern} from "../../common/controller/concern/ProfileConcern";
 
 @Singleton
@@ -25,9 +25,9 @@ export class UserInfoController {
 
     askForUserInfo = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
             const encodedUserData = this.webFormConcern.encodeData(await this.userData(ctx));
-            await ctx.replyWithMarkdownV2(UserInfoMessage.ASK_FOR_USER_INFO, Markup.keyboard([this.WEB_FORM_BUTTON(encodedUserData)]).resize());
+            await ctx.reply(UserInfoMessage.ASK_FOR_UPDATE_USER_INFO, Markup.keyboard([this.WEB_FORM_BUTTON(encodedUserData)]).resize());
         } catch (e) {
             console.log(e);
         }
@@ -35,7 +35,7 @@ export class UserInfoController {
 
     updateUserInfo = async ctx => {
         try {
-            await this.registerConcern.registerCheck(ctx);
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
             await this.userService.updateUserData(ctx.from.id, this.webFormConcern.parsedUserData(ctx));
             await ctx.reply(UserInfoMessage.USER_INFO_UPDATED, Markup.removeKeyboard());
             await this.myInfo(ctx);
@@ -47,6 +47,7 @@ export class UserInfoController {
 
     myInfo = async ctx => {
         try {
+            if (!(await this.registerConcern.registerCheck(ctx))) return;
             const user = await this.userService.get(ctx.from.id);
             await this.profileConcern.sendProfile(ctx, user!, ctx.from.id);
         } catch (e) {

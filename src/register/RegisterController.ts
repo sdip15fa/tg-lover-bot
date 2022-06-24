@@ -1,32 +1,36 @@
-import {ValidationError} from "class-validator";
 import {Markup} from "telegraf";
 import {Inject, Singleton} from "typescript-ioc";
-import {UserInfoParser} from "../user/service/UserInfoParser";
 import {RegisterAction} from "./constant/RegisterAction";
 import {RegisterMessage} from "./constant/RegisterMessage";
 import {RegisterService} from "./RegisterService";
-import {LocalizePropertyUtil} from "../common/core/validation/LocalizePropertyUtil";
 import {InputMediaPhoto} from "telegraf/types";
-import {UserFilterParser} from "../user/service/UserFilterParser";
+import {WebFormConcern} from "../common/controller/concern/WebFormConcern";
+import {UserInfoMessage} from "../user/constant/UserInfoMessage";
+import {UserFilterMessage} from "../user/constant/UserFilterMessage";
+import {UserService} from "../user/service/UserService";
+import {ProfileConcern} from "../common/controller/concern/ProfileConcern";
+import {UserFilterConverter} from "../user/service/UserFilterConverter";
+import {UserPhotoMessage} from "../user/constant/UserPhotoMessage";
+import {UserPhotoService} from "../user/service/UserPhotoService";
 
 @Singleton
 export class RegisterController {
     constructor(
         @Inject
-        private registerService: RegisterService,
+        private readonly registerService: RegisterService,
         @Inject
-        private userInfoParser: UserInfoParser,
+        private readonly userService: UserService,
         @Inject
-        private userFilterParser: UserFilterParser
+        private readonly userPhotoService: UserPhotoService,
+        @Inject
+        private readonly webFormConcern: WebFormConcern,
+        @Inject
+        private readonly profileConcern: ProfileConcern
     ) {}
 
     enterScene = async ctx => {
         try {
-            const isRegistered = await this.registerService.isRegistered(ctx.from.id);
-
-            if (isRegistered) {
-                await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
-                ctx.scene.leave();
+            if (await this.registered(ctx)) {
                 return;
             }
 
@@ -37,13 +41,7 @@ export class RegisterController {
                 return;
             }
 
-            await ctx.reply(RegisterMessage.TERMS, {
-                ...Markup.inlineKeyboard([
-                    Markup.button.callback(RegisterMessage.AGREE_TERMS, RegisterAction.AGREE_TERMS),
-                    Markup.button.callback(RegisterMessage.DISAGREE_TERMS, RegisterAction.DISAGREE_TERMS),
-                ]),
-                parse_mode: "HTML",
-            });
+            await ctx.replyWithHTML(RegisterMessage.TERMS, this.AGREE_TERMS_BUTTONS);
         } catch (e) {
             console.log(e);
         }
@@ -60,13 +58,7 @@ export class RegisterController {
 
             const username = ctx.from.username;
 
-            await ctx.reply(
-                RegisterMessage.USERNAME_PERMISSION_CONFIRM(username),
-                Markup.inlineKeyboard([
-                    Markup.button.callback(RegisterMessage.AGREE, RegisterAction.AGREE_USERNAME_PERMISSION),
-                    Markup.button.callback(RegisterMessage.DISAGREE, RegisterAction.DISAGREE_USERNAME_PERMISSION),
-                ])
-            );
+            await ctx.reply(RegisterMessage.USERNAME_PERMISSION_CONFIRM(username), this.AGREE_USERNAME_PERMISSION_BUTTONS);
         } catch (e) {
             console.log(e);
         }
@@ -75,15 +67,13 @@ export class RegisterController {
     askForUserInfo = async ctx => {
         try {
             const isInfoUpdated = await this.registerService.isInfoUpdated(ctx.from.id);
+
             if (isInfoUpdated) {
                 await this.askForUploadPhotos(ctx);
                 return;
             }
 
-            await ctx.replyWithMarkdownV2(RegisterMessage.USER_INFO_SCHEMA);
-            await ctx.reply(RegisterMessage.USER_INFO_SAMPLE, {
-                reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_USER_INFO},
-            });
+            await ctx.reply(UserInfoMessage.ASK_FOR_FILL_USER_INFO, Markup.keyboard([this.USER_INFO_FORM_BUTTON()]).resize());
         } catch (e) {
             console.log(e);
         }
@@ -97,7 +87,7 @@ export class RegisterController {
                 return;
             }
 
-            await ctx.reply(RegisterMessage.ASK_FOR_PHOTOS, Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.SKIP_THIS_STEP, RegisterAction.UPDATE_FILTER)]));
+            await ctx.reply(RegisterMessage.ASK_FOR_PHOTOS, this.ASK_FOR_PHOTOS_BUTTONS);
         } catch (e) {
             console.log(e);
         }
@@ -112,11 +102,8 @@ export class RegisterController {
             }
 
             await this.registerService.markPhotoUploaded(ctx.from.id);
-            await ctx.replyWithMarkdownV2(RegisterMessage.FILTER_SCHEMA);
 
-            await ctx.reply(RegisterMessage.FILTER_SAMPLE, {
-                reply_markup: {force_reply: true, input_field_placeholder: RegisterMessage.YOUR_FILTER},
-            });
+            await ctx.reply(UserFilterMessage.ASK_FOR_FILL_FILTER, Markup.keyboard([this.USER_FILTER_FORM_BUTTON()]).resize());
         } catch (e) {
             console.log(e);
         }
@@ -139,6 +126,7 @@ export class RegisterController {
         } catch (e) {
             console.log(e);
         }
+
         await ctx.scene.leave();
     };
 
@@ -161,27 +149,13 @@ export class RegisterController {
         await ctx.scene.leave();
     };
 
-    createUserInfo = async ctx => {
+    updateUserInfo = async ctx => {
         try {
-            const userInfoYAML = ctx.match.input;
-            const userView = await this.userInfoParser.parseYAML(ctx.from.id, userInfoYAML);
-
-            await this.registerService.updateUserInfo(userView);
-
-            await ctx.reply(RegisterMessage.USER_INFO_UPDATED);
+            await this.userService.updateUserData(ctx.from.id, {...this.webFormConcern.parsedUserData(ctx), infoUpdated: true});
+            await ctx.reply(UserInfoMessage.USER_INFO_UPDATED, Markup.removeKeyboard());
+            await this.myInfo(ctx);
         } catch (e) {
             console.log(e);
-            if (Array.isArray(e) && e[0] instanceof ValidationError) {
-                const validationErrors: ValidationError[] = e;
-
-                await ctx.replyWithHTML(
-                    `<b>${RegisterMessage.USER_INFO_VALIDATION_ERROR}</b>\n${validationErrors
-                        .map(v => `<b>${LocalizePropertyUtil.getPropertyName(v.property)}:</b>\n${(v.constraints ? Object.values(v.constraints) : []).map(_ => `- ${_}`).join("\n")}`)
-                        .join("\n")}`
-                );
-            } else {
-                await ctx.reply(RegisterMessage.USER_INFO_FORMAT_ERROR);
-            }
             return;
         }
 
@@ -190,26 +164,18 @@ export class RegisterController {
 
     updateFilter = async ctx => {
         try {
-            const userFilterYAML = ctx.match.input;
-            const userFilterView = await this.userFilterParser.parseYAML(ctx.from.id, userFilterYAML);
-
-            await this.registerService.updateFilter(ctx.from.id, userFilterView);
-
-            await ctx.reply(RegisterMessage.USER_FILTER_UPDATED);
+            await this.userService.updateUserData(ctx.from.id, {...this.webFormConcern.parsedUserData(ctx), filterUpdated: true});
+            await ctx.reply(UserFilterMessage.USER_FILTER_UPDATED, Markup.removeKeyboard());
+            await this.myFilter(ctx);
         } catch (e) {
             console.log(e);
-
-            if (Array.isArray(e) && typeof e[0] === "string") {
-                await ctx.replyWithHTML(`<b>${RegisterMessage.USER_INFO_VALIDATION_ERROR}</b>\n${e.map(v => `- ${v}`).join("\n")}`);
-            } else {
-                await ctx.replyWithHTML(`<b>${RegisterMessage.USER_INFO_VALIDATION_ERROR}</b>`);
-            }
+            return;
         }
 
         await this.registerFinished(ctx);
     };
 
-    registerFinished = async ctx => {
+    private registerFinished = async ctx => {
         try {
             await this.registerService.markRegistered(ctx.from.id);
             await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
@@ -225,25 +191,19 @@ export class RegisterController {
 
             if (!isInfoUpdated) return;
 
-            const message = await ctx.reply("上傳照片中...");
+            const message = await ctx.reply(UserPhotoMessage.UPLOADING_PHOTOS);
             await ctx.replyWithChatAction("upload_photo");
 
-            const uploadedPhotoURL = await this.registerService.uploadPhoto(ctx.from.id, ctx.message.photo[ctx.message.photo.length - 1]);
+            const uploadedPhotoURL = await this.userService.uploadPhoto(ctx.from.id, ctx.message.photo[ctx.message.photo.length - 1]);
 
-            await ctx.telegram.editMessageText(ctx.chat.id, message.message_id, undefined, "上傳照片完成，正在處理中...");
-            const photoURLs = await this.registerService.addPhoto(ctx.from.id, uploadedPhotoURL);
+            await ctx.telegram.editMessageText(ctx.chat.id, message.message_id, undefined, UserPhotoMessage.PROCESSING_PHOTOS);
+            const photoURLs = await this.userService.addPhoto(ctx.from.id, uploadedPhotoURL);
 
             if (photoURLs !== null) {
                 const photoCount = photoURLs.length;
-
-                await ctx.replyWithMediaGroup(
-                    photoURLs.map(url => ({
-                        type: "photo",
-                        media: url,
-                    })) as InputMediaPhoto[]
-                );
+                await ctx.replyWithMediaGroup(photoURLs.map(url => ({type: "photo", media: url})) as InputMediaPhoto[]);
                 await ctx.reply(
-                    RegisterMessage.USER_PHOTOS_UPDATED.replace("{x}", photoCount.toString()),
+                    UserPhotoMessage.USER_PHOTOS_UPDATED.replace("{x}", photoCount.toString()),
                     Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.NEXT_STEP, RegisterAction.UPDATE_FILTER)])
                 );
                 await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
@@ -255,11 +215,62 @@ export class RegisterController {
 
     clearPhotos = async ctx => {
         try {
-            await this.registerService.clearPhotos(ctx.from.id);
-            await ctx.reply(RegisterMessage.USER_PHOTOS_CLEARED);
+            await this.userPhotoService.clearPhotos(ctx.from.id);
+            await ctx.reply(UserPhotoMessage.USER_PHOTOS_CLEARED);
         } catch (e) {
             console.log(e);
         }
         await this.askForUploadPhotos(ctx);
+    };
+
+    private registered = async ctx => {
+        const isRegistered = await this.registerService.isRegistered(ctx.from.id);
+
+        if (isRegistered) {
+            await ctx.replyWithHTML(RegisterMessage.REGISTER_FINISHED);
+            ctx.scene.leave();
+            return true;
+        }
+
+        return false;
+    };
+
+    private myInfo = async ctx => {
+        try {
+            const user = await this.userService.get(ctx.from.id);
+            await this.profileConcern.sendProfile(ctx, user!, ctx.from.id);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    private myFilter = async ctx => {
+        try {
+            const user = await this.userService.get(ctx.from.id);
+            const template = UserFilterConverter.template(user!);
+            await ctx.reply(template);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    private AGREE_USERNAME_PERMISSION_BUTTONS = Markup.inlineKeyboard([
+        Markup.button.callback(RegisterMessage.AGREE, RegisterAction.AGREE_USERNAME_PERMISSION),
+        Markup.button.callback(RegisterMessage.DISAGREE, RegisterAction.DISAGREE_USERNAME_PERMISSION),
+    ]);
+
+    private AGREE_TERMS_BUTTONS = Markup.inlineKeyboard([
+        Markup.button.callback(RegisterMessage.AGREE_TERMS, RegisterAction.AGREE_TERMS),
+        Markup.button.callback(RegisterMessage.DISAGREE_TERMS, RegisterAction.DISAGREE_TERMS),
+    ]);
+
+    private ASK_FOR_PHOTOS_BUTTONS = Markup.inlineKeyboard([Markup.button.callback(RegisterMessage.SKIP_THIS_STEP, RegisterAction.UPDATE_FILTER)]);
+
+    private USER_INFO_FORM_BUTTON = () => {
+        return Markup.button.webApp(UserInfoMessage.FILL_USER_INFO, this.webFormConcern.webFormURL(process.env.USER_INFO_FORM!));
+    };
+
+    private USER_FILTER_FORM_BUTTON = () => {
+        return Markup.button.webApp(UserFilterMessage.FILL_FILTER, this.webFormConcern.webFormURL(process.env.USER_FILTER_FORM!));
     };
 }

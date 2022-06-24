@@ -24,6 +24,7 @@ export interface User {
     photo_uploaded: boolean;
     filter_updated: boolean;
     registered: boolean;
+    blocked: boolean;
     filter_gender: FilterGender;
     filter_age_upper_bound: number;
     filter_age_lower_bound: number;

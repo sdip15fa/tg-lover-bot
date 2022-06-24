@@ -13,6 +13,7 @@ export class UserConverter {
             filter_updated: view.filterUpdated!,
             photo_uploaded: view.photoUploaded!,
             registered: view.registered!,
+            blocked: view.blocked!,
             agree_username_permission: view.agreeUsernamePermission!,
             gender: view.gender!,
             age: view.age!,
@@ -44,6 +45,7 @@ export class UserConverter {
         view.filterUpdated = user.filter_updated;
         view.photoUploaded = user.photo_uploaded;
         view.registered = user.registered;
+        view.blocked = user.blocked;
         view.agreeUsernamePermission = user.agree_username_permission;
         view.gender = user.gender;
         view.age = user.age;

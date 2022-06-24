@@ -16,13 +16,13 @@ export class MatchService {
     ) {}
 
     async recentLikedUsers(userId: string): Promise<UserView[]> {
-        const blockedIds = await MatchService.blockedIds();
+        const notPermittedIds = await MatchService.notPermittedIds();
 
         const targetIds = await MatchService.matchRepository
             .pluck("target_id")
             .where({user_id: userId, like: true})
             .andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"))
-            .andWhere("target_id", "NOT IN", blockedIds)
+            .andWhere("target_id", "NOT IN", notPermittedIds)
             .orderBy("created_at", "desc")
             .limit(5);
 
@@ -32,14 +32,14 @@ export class MatchService {
     }
 
     async bidirectionalMatchedUsers(userId: string): Promise<UserView[]> {
-        const blockedIds = await MatchService.blockedIds();
+        const notPermittedIds = await MatchService.notPermittedIds();
 
         const targetIds = await MatchService.matchRepository
             .pluck("target_id")
             .from("matches AS m1")
             .where({user_id: userId, like: true})
             .andWhere("target_id", "IN", MatchService.matchRepository.select("user_id").from("matches AS m2").where({target_id: userId, like: true}))
-            .andWhere("target_id", "NOT IN", blockedIds)
+            .andWhere("target_id", "NOT IN", notPermittedIds)
             .orderBy("created_at", "desc")
             .limit(5);
 
@@ -48,9 +48,9 @@ export class MatchService {
 
     async vote(userId: string, targetId: string, like: boolean): Promise<boolean> {
         const recentMatchIds = await MatchService.recentMatchedIds(userId);
-        const blockedIds = await MatchService.blockedIds();
+        const notPermittedIds = await MatchService.notPermittedIds();
 
-        if (blockedIds.includes(targetId)) {
+        if (notPermittedIds.includes(targetId)) {
             return false;
         }
 
@@ -72,14 +72,13 @@ export class MatchService {
 
         const recentMatchedIds = await MatchService.recentMatchedIds(userId);
         const bidirectionalMatchedIds = await MatchService.bidirectionalMatchedIds(userId);
-        const blockedIds = await MatchService.blockedIds();
+        const notPermittedIds = await MatchService.notPermittedIds();
 
         const luckyPickQuery = MatchService.userRepository.select<User[]>();
         MatchService.filterGender(luckyPickQuery, currentUser.gender!, currentUser.filterGender!);
-        luckyPickQuery.andWhere({registered: true});
         luckyPickQuery.andWhereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
         luckyPickQuery.andWhereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
-        luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds, ...blockedIds]);
+        luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds, ...notPermittedIds]);
         luckyPickQuery.orderByRaw("RANDOM()");
         luckyPickQuery.limit(1);
         const pickedUser = await luckyPickQuery.first();
@@ -101,8 +100,8 @@ export class MatchService {
         }
     }
 
-    private static async blockedIds(): Promise<string[]> {
-        return MatchService.userRepository.pluck("telegram_id").where({blocked: true});
+    private static async notPermittedIds(): Promise<string[]> {
+        return MatchService.userRepository.pluck("telegram_id").where({blocked: true}).orWhere({username: null}).orWhere({registered: false});
     }
 
     private static async recentMatchedIds(userId: string): Promise<string[]> {

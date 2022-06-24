@@ -41,6 +41,7 @@ bot.action(/MATCH_DISLIKE#(.+)/, matchController.dislike);
 
 bot.command("update_info", userInfoController.askForUserInfo);
 bot.command("my_info", userInfoController.myInfo);
+bot.command("renew", userInfoController.renewUsername);
 
 bot.command("update_filter", userFilterController.askForFilter);
 bot.command("my_filter", userFilterController.myFilter);

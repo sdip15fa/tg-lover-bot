@@ -25,7 +25,8 @@ export class UserInfoController {
 
     askForUserInfo = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             const encodedUserData = this.webFormConcern.encodeData(await this.userData(ctx));
 
             await ctx.reply(UserInfoMessage.ASK_FOR_UPDATE_USER_INFO, Markup.keyboard([this.WEB_FORM_BUTTON(encodedUserData)]).resize());
@@ -36,7 +37,8 @@ export class UserInfoController {
 
     updateUserInfo = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             await this.userService.updateUserData(ctx.from.id, this.webFormConcern.parsedUserData(ctx));
             await ctx.reply(UserInfoMessage.USER_INFO_UPDATED, Markup.removeKeyboard());
             await this.myInfo(ctx);
@@ -48,13 +50,26 @@ export class UserInfoController {
 
     myInfo = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             const user = await this.userService.get(ctx.from.id);
             await this.profileConcern.sendProfile(ctx, user!, ctx.from.id);
         } catch (e) {
             console.log(e);
         }
     };
+
+    renewUsername = async ctx => {
+        if (!(await this.auth(ctx))) return;
+
+        await ctx.reply(UserInfoMessage.USERNAME_RENEWED.replace("{username}", ctx.from.username));
+    };
+
+    private async auth(ctx) {
+        if (!(await this.registerConcern.registerCheck(ctx))) return false;
+        if (ctx.from.username) await this.userService.renewUsername(ctx);
+        return true;
+    }
 
     private WEB_FORM_BUTTON = (encodedData: any) => {
         return Markup.button.webApp(UserInfoMessage.UPDATE_USER_INFO, this.webFormConcern.webFormURL(process.env.USER_INFO_FORM!, encodedData));

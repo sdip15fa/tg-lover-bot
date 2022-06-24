@@ -20,7 +20,8 @@ export class UserFilterController {
 
     askForFilter = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             const encodedUserData = this.webFormConcern.encodeData(await this.filterData(ctx));
             await ctx.reply(UserFilterMessage.ASK_FOR_UPDATE_FILTER, Markup.keyboard([this.WEB_FORM_BUTTON(encodedUserData)]).resize());
         } catch (e) {
@@ -30,7 +31,8 @@ export class UserFilterController {
 
     updateFilter = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             await this.userService.updateUserData(ctx.from.id, this.webFormConcern.parsedUserData(ctx));
             await ctx.reply(UserFilterMessage.USER_FILTER_UPDATED, Markup.removeKeyboard());
             await this.myFilter(ctx);
@@ -41,7 +43,8 @@ export class UserFilterController {
 
     myFilter = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             const user = await this.userService.get(ctx.from.id);
             const template = UserFilterConverter.template(user!);
             await ctx.reply(template);
@@ -49,6 +52,12 @@ export class UserFilterController {
             console.log(e);
         }
     };
+
+    private async auth(ctx) {
+        if (!(await this.registerConcern.registerCheck(ctx))) return false;
+        if (ctx.from.username) await this.userService.renewUsername(ctx);
+        return true;
+    }
 
     private WEB_FORM_BUTTON = (encodedData: any) => {
         return Markup.button.webApp(UserFilterMessage.UPDATE_FILTER, this.webFormConcern.webFormURL(process.env.USER_FILTER_FORM!, encodedData));

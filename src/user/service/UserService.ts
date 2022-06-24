@@ -18,8 +18,8 @@ export class UserService {
     ) {}
 
     async isBlocked(id: string): Promise<boolean> {
-        const user = await UserService.userRepository.select().where({telegram_id: id}).first();
-        return Boolean(user.blocked);
+        const user = await this.get(id);
+        return Boolean(user?.blocked);
     }
 
     async get(id: string): Promise<UserView | null> {
@@ -37,6 +37,10 @@ export class UserService {
     async list(ids: string[]): Promise<UserView[]> {
         const result = await UserService.userRepository.select().whereIn("telegram_id", ids);
         return result.map(UserConverter.view);
+    }
+
+    async renewUsername(ctx: any) {
+        await this.updateUserData(ctx.from.id, {username: ctx.from.username});
     }
 
     async updateUserData(telegramId: string, data: Partial<UserView>) {

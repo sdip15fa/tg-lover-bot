@@ -1,12 +1,13 @@
 register - 註冊帳號
 match - 立即配對
-update_info - 更新個人資料
-upload_photos - 上傳個人照片
-clear_photos - 清除所有個人照片
-my_info - 預覽個人資料
-update_filter - 更新配對條件
-my_filter - 預覽配對條件
 recent_liked - 最近喜歡的五個對象
 recent_matched - 最近成功配對的五個對象
+update_info - 更新個人資料
+my_info - 預覽個人資料
+upload_photos - 上傳個人照片
+clear_photos - 清除所有個人照片
+update_filter - 更新配對條件
+my_filter - 預覽配對條件
+renew - 更新 Telegram 帳戶名稱
 donate - 課金贊助窮三代IT狗
 feedback - 意見回饋 / 投訴

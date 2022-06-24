@@ -18,7 +18,8 @@ export class UserPhotoController {
 
     askForUploadPhotos = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
+            if (!(await this.auth(ctx))) return;
+
             await ctx.reply(UserPhotoMessage.ASK_FOR_PHOTOS);
         } catch (e) {
             console.log(e);
@@ -27,6 +28,8 @@ export class UserPhotoController {
 
     uploadPhotos = async ctx => {
         try {
+            if (!(await this.auth(ctx))) return;
+
             const message = await ctx.reply(UserPhotoMessage.UPLOADING_PHOTOS);
             await ctx.replyWithChatAction("upload_photo");
 
@@ -48,10 +51,18 @@ export class UserPhotoController {
 
     clearPhotos = async ctx => {
         try {
+            if (!(await this.auth(ctx))) return;
+
             await this.userPhotoService.clearPhotos(ctx.from.id);
             await ctx.reply(UserPhotoMessage.USER_PHOTOS_CLEARED);
         } catch (e) {
             console.log(e);
         }
     };
+
+    private async auth(ctx) {
+        if (!(await this.registerConcern.registerCheck(ctx))) return false;
+        if (ctx.from.username) await this.userService.renewUsername(ctx);
+        return true;
+    }
 }

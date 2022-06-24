@@ -18,6 +18,8 @@ const TERMS = `<b>歡迎使用 TG Lover</b>
 
 8. 平台擁有人 (窮三代IT狗) 有權以合理理由 (eg. 違反使用條款、濫用) 停用 / 刪除您的帳號，並不會作出任何通知。`;
 
+const NO_USERNAME_ERROR = `很抱歉，TG Lover 無法取得您的 Telegram 帳戶名稱😔\n您必須先在 Telegram 中設定您的 Telegram 帳戶名稱，才能使用 TG Lover 服務。`;
+
 const USERNAME_PERMISSION_CONFIRM = (username: string) => `TG Lover 已經取得了您的 Telegram 帳戶名稱：
 @${username}
 
@@ -58,4 +60,5 @@ export const RegisterMessage = Object.freeze({
     NEXT_STEP,
     REGISTER_FINISHED,
     GOTO_NEXT_STEP_IF_UPLOAD_FINISHED,
+    NO_USERNAME_ERROR,
 });

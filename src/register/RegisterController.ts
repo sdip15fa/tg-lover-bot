@@ -58,6 +58,12 @@ export class RegisterController {
 
             const username = ctx.from.username;
 
+            if (!ctx.from.username) {
+                await ctx.reply(RegisterMessage.NO_USERNAME_ERROR);
+                await ctx.scene.leave();
+                return;
+            }
+
             await ctx.reply(RegisterMessage.USERNAME_PERMISSION_CONFIRM(username), this.AGREE_USERNAME_PERMISSION_BUTTONS);
         } catch (e) {
             console.log(e);

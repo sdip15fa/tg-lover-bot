@@ -10,6 +10,7 @@ import {UserService} from "../user/service/UserService";
 import {UserView} from "../common/view/user/UserView";
 import {RegisterConcern} from "../common/controller/concern/RegisterConcern";
 import {ProfileConcern} from "../common/controller/concern/ProfileConcern";
+import {RegisterMessage} from "../register/constant/RegisterMessage";
 
 @Singleton
 export class MatchController {
@@ -30,7 +31,7 @@ export class MatchController {
 
     like = async ctx => {
         try {
-            if (await this.blocked(ctx)) return;
+            if (!(await this.auth(ctx))) return;
 
             const targetId = `${ctx.match.input}`.replace(`${MatchAction.MATCH_LIKE}#`, "");
             const me = await this.userService.get(ctx.from.id);
@@ -50,7 +51,7 @@ export class MatchController {
 
     dislike = async ctx => {
         try {
-            if (await this.blocked(ctx)) return;
+            if (!(await this.auth(ctx))) return;
 
             const targetId = `${ctx.match.input}`.replace(`${MatchAction.MATCH_DISLIKE}#`, "");
             await this.matchService.vote(ctx.from.id, targetId, false);
@@ -63,8 +64,7 @@ export class MatchController {
 
     match = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
-            if (await this.blocked(ctx)) return;
+            if (!(await this.auth(ctx))) return;
 
             const user = await this.matchService.luckyPick(ctx.from.id);
 
@@ -81,8 +81,7 @@ export class MatchController {
 
     recentLikedUsers = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
-            if (await this.blocked(ctx)) return;
+            if (!(await this.auth(ctx))) return;
 
             const users = await this.matchService.recentLikedUsers(ctx.from.id);
 
@@ -100,8 +99,7 @@ export class MatchController {
 
     recentMatchedUsers = async ctx => {
         try {
-            if (!(await this.registerConcern.registerCheck(ctx))) return;
-            if (await this.blocked(ctx)) return;
+            if (!(await this.auth(ctx))) return;
 
             const users = await this.matchService.bidirectionalMatchedUsers(ctx.from.id);
 
@@ -116,6 +114,14 @@ export class MatchController {
             console.log(e);
         }
     };
+
+    private async auth(ctx) {
+        if (!(await this.registerConcern.registerCheck(ctx))) return false;
+        if (await this.blocked(ctx)) return false;
+        if (await this.noUsername(ctx)) return false;
+        await this.userService.renewUsername(ctx);
+        return true;
+    }
 
     private MATCH_BUTTONS = (user: UserView) => {
         return Markup.inlineKeyboard([
@@ -156,6 +162,14 @@ export class MatchController {
         const blocked = await this.userService.isBlocked(ctx.from.id);
         if (blocked) {
             await ctx.replyWithHTML(MatchMessage.YOU_ARE_BLOCKED);
+            return true;
+        }
+        return false;
+    };
+
+    private noUsername = async (ctx: any) => {
+        if (!ctx.from.username) {
+            await ctx.replyWithHTML(RegisterMessage.NO_USERNAME_ERROR);
             return true;
         }
         return false;

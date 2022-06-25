@@ -1,9 +1,9 @@
+import omit from "lodash/omit";
+import {Markup} from "telegraf";
 import {Inject, Singleton} from "typescript-ioc";
 import {UserService} from "../service/UserService";
 import {UserInfoMessage} from "../constant/UserInfoMessage";
 import {UserPhotoService} from "../service/UserPhotoService";
-import {Markup} from "telegraf";
-import omit from "lodash/omit";
 import {RegisterConcern} from "../../common/controller/concern/RegisterConcern";
 import {WebFormConcern} from "../../common/controller/concern/WebFormConcern";
 import {ProfileConcern} from "../../common/controller/concern/ProfileConcern";

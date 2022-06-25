@@ -12,6 +12,7 @@ import {ProfileConcern} from "../common/controller/concern/ProfileConcern";
 import {UserFilterConverter} from "../user/service/UserFilterConverter";
 import {UserPhotoMessage} from "../user/constant/UserPhotoMessage";
 import {UserPhotoService} from "../user/service/UserPhotoService";
+import pick from "lodash/pick";
 
 @Singleton
 export class RegisterController {
@@ -109,7 +110,9 @@ export class RegisterController {
 
             await this.registerService.markPhotoUploaded(ctx.from.id);
 
-            await ctx.reply(UserFilterMessage.ASK_FOR_FILL_FILTER, Markup.keyboard([this.USER_FILTER_FORM_BUTTON()]).resize());
+            const user = await this.userService.get(ctx.from.id);
+            const encodedUserData = this.webFormConcern.encodeData(pick(user, ["goalRelationship"]));
+            await ctx.reply(UserFilterMessage.ASK_FOR_FILL_FILTER, Markup.keyboard([this.USER_FILTER_FORM_BUTTON(encodedUserData)]).resize());
         } catch (e) {
             console.log(e);
         }
@@ -276,7 +279,7 @@ export class RegisterController {
         return Markup.button.webApp(UserInfoMessage.FILL_USER_INFO, this.webFormConcern.webFormURL(process.env.USER_INFO_FORM!));
     };
 
-    private USER_FILTER_FORM_BUTTON = () => {
-        return Markup.button.webApp(UserFilterMessage.FILL_FILTER, this.webFormConcern.webFormURL(process.env.USER_FILTER_FORM!));
+    private USER_FILTER_FORM_BUTTON = encodedData => {
+        return Markup.button.webApp(UserFilterMessage.FILL_FILTER, this.webFormConcern.webFormURL(process.env.USER_FILTER_FORM!, encodedData));
     };
 }

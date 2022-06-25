@@ -1,6 +1,6 @@
+import {Knex} from "knex";
 import {db} from "../../common/db";
 import {Inject, Singleton} from "typescript-ioc";
-import {Knex} from "knex";
 import {UserService} from "../../user/service/UserService";
 import {FilterGender} from "../../common/enum/FilterGender";
 import {Gender} from "../../common/enum/Gender";
@@ -47,7 +47,7 @@ export class MatchService {
     }
 
     async vote(userId: string, targetId: string, like: boolean): Promise<boolean> {
-        const recentMatchIds = await MatchService.recentMatchedIds(userId);
+        const recentMatchIds = await MatchService.recentVotedIds(userId);
         const notPermittedIds = await MatchService.notPermittedIds();
 
         if (notPermittedIds.includes(targetId)) {
@@ -70,12 +70,14 @@ export class MatchService {
 
         if (!currentUser) return null;
 
-        const recentMatchedIds = await MatchService.recentMatchedIds(userId);
+        const recentMatchedIds = await MatchService.recentVotedIds(userId);
         const bidirectionalMatchedIds = await MatchService.bidirectionalMatchedIds(userId);
         const notPermittedIds = await MatchService.notPermittedIds();
 
         const luckyPickQuery = MatchService.userRepository.select<User[]>();
         MatchService.filterGender(luckyPickQuery, currentUser.gender!, currentUser.filterGender!);
+
+        if (currentUser.filterGoalRelationship) luckyPickQuery.andWhere("goal_relationship", currentUser.goalRelationship);
         luckyPickQuery.andWhereBetween("age", [currentUser.filterAgeLowerBound!, currentUser.filterAgeUpperBound!]);
         luckyPickQuery.andWhereBetween("height", [currentUser.filterHeightLowerBound!, currentUser.filterHeightUpperBound!]);
         luckyPickQuery.andWhere("telegram_id", "NOT IN", [userId, ...recentMatchedIds, ...bidirectionalMatchedIds, ...notPermittedIds]);
@@ -104,7 +106,7 @@ export class MatchService {
         return MatchService.userRepository.pluck("telegram_id").where({blocked: true}).orWhere({username: null}).orWhere({registered: false});
     }
 
-    private static async recentMatchedIds(userId: string): Promise<string[]> {
+    private static async recentVotedIds(userId: string): Promise<string[]> {
         return MatchService.matchRepository.pluck("target_id").where({user_id: userId}).andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"));
     }
 

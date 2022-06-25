@@ -26,6 +26,7 @@ export class UserConverter {
             self_intro: view.selfIntro === null ? null : view.selfIntro ? view.selfIntro.join("\n") : undefined,
             relationship_criteria: view.relationshipCriteria === null ? null : view.relationshipCriteria ? view.relationshipCriteria.join("\n") : undefined,
             filter_gender: view.filterGender!,
+            filter_goal_relationship: view.filterGoalRelationship!,
             filter_age_lower_bound: view.filterAgeLowerBound!,
             filter_age_upper_bound: view.filterAgeUpperBound!,
             filter_height_lower_bound: view.filterHeightLowerBound!,
@@ -58,6 +59,7 @@ export class UserConverter {
         view.selfIntro = typeof user.self_intro === "string" ? user.self_intro.split(/\n/g) : user.self_intro;
         view.relationshipCriteria = typeof user.relationship_criteria === "string" ? user.relationship_criteria.split(/\n/g) : user.relationship_criteria;
         view.filterGender = user.filter_gender;
+        view.filterGoalRelationship = user.filter_goal_relationship;
         view.filterAgeLowerBound = user.filter_age_lower_bound;
         view.filterAgeUpperBound = user.filter_age_upper_bound;
         view.filterHeightLowerBound = user.filter_height_lower_bound;

@@ -1,11 +1,11 @@
+import pick from "lodash/pick";
+import {Markup} from "telegraf";
 import {Inject, Singleton} from "typescript-ioc";
 import {UserService} from "../service/UserService";
 import {UserFilterMessage} from "../constant/UserFilterMessage";
 import {RegisterConcern} from "../../common/controller/concern/RegisterConcern";
 import {WebFormConcern} from "../../common/controller/concern/WebFormConcern";
 import {UserFilterConverter} from "../service/UserFilterConverter";
-import {Markup} from "telegraf";
-import pick from "lodash/pick";
 
 @Singleton
 export class UserFilterController {
@@ -59,12 +59,12 @@ export class UserFilterController {
         return true;
     }
 
-    private WEB_FORM_BUTTON = (encodedData: any) => {
+    private WEB_FORM_BUTTON = encodedData => {
         return Markup.button.webApp(UserFilterMessage.UPDATE_FILTER, this.webFormConcern.webFormURL(process.env.USER_FILTER_FORM!, encodedData));
     };
 
     private filterData = async ctx => {
         const user = await this.userService.get(ctx.from.id);
-        return pick(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound"]);
+        return pick(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound", "filterGoalRelationship", "goalRelationship"]);
     };
 }

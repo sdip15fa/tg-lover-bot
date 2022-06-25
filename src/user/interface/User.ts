@@ -26,6 +26,7 @@ export interface User {
     registered: boolean;
     blocked: boolean;
     filter_gender: FilterGender;
+    filter_goal_relationship: boolean;
     filter_age_upper_bound: number;
     filter_age_lower_bound: number;
     filter_height_upper_bound: number;

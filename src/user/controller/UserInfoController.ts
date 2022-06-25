@@ -77,6 +77,6 @@ export class UserInfoController {
 
     private userData = async ctx => {
         const user = await this.userService.get(ctx.from.id);
-        return omit(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound"]);
+        return omit(user, ["filterGender", "filterAgeLowerBound", "filterAgeUpperBound", "filterHeightLowerBound", "filterHeightUpperBound", "filterGoalRelationship"]);
     };
 }

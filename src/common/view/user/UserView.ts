@@ -80,6 +80,8 @@ export class UserView {
     public relationshipCriteria: string[] | null | undefined;
 
     public filterGender: FilterGender | undefined;
+    public filterGoalRelationship: boolean | undefined;
+
     public filterAgeLowerBound: number | undefined;
     public filterAgeUpperBound: number | undefined;
     public filterHeightLowerBound: number | undefined;

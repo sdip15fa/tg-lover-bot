@@ -9,5 +9,6 @@ clear_photos - 清除所有個人照片
 update_filter - 更新配對條件
 my_filter - 預覽配對條件
 renew - 更新 Telegram 帳戶名稱
+stats - 統計數據
 donate - 課金贊助窮三代IT狗
 feedback - 意見回饋 / 投訴

@@ -31,6 +31,23 @@ export class MatchService {
         return targetIds.map(id => users.find(u => u.telegramId === id));
     }
 
+    async recentLikedMe(userId: string): Promise<UserView[]> {
+        const notPermittedIds = await MatchService.notPermittedIds();
+        const bidirectionalMatchedIds = await MatchService.bidirectionalMatchedIds(userId);
+
+        const likedMeIds = await MatchService.matchRepository
+            .pluck("user_id")
+            .where({target_id: userId, like: true})
+            .andWhere("created_at", ">", db.raw("'now'::timestamp - '1 month'::interval"))
+            .andWhere("user_id", "NOT IN", [...notPermittedIds, ...bidirectionalMatchedIds])
+            .orderBy("created_at", "desc")
+            .limit(5);
+
+        const users = await this.userService.list(likedMeIds);
+
+        return likedMeIds.map(id => users.find(u => u.telegramId === id));
+    }
+
     async bidirectionalMatchedUsers(userId: string): Promise<UserView[]> {
         const notPermittedIds = await MatchService.notPermittedIds();
 

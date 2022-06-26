@@ -2,6 +2,7 @@ register - 註冊帳號
 match - 立即配對
 recent_liked - 最近喜歡的五個對象
 recent_matched - 最近成功配對的五個對象
+recent_liked_me - 最近喜歡我的五個對象
 update_info - 更新個人資料
 my_info - 預覽個人資料
 upload_photos - 上傳個人照片

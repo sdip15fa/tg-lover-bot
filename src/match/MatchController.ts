@@ -97,6 +97,27 @@ export class MatchController {
         }
     };
 
+    recentLikedMe = async ctx => {
+        try {
+            if (!(await this.auth(ctx))) return;
+
+            const users = await this.matchService.recentLikedMe(ctx.from.id);
+
+            if (users.length === 0) {
+                await ctx.replyWithHTML(MatchMessage.NO_RECENT_LIKED_ME);
+                return;
+            }
+
+            await ctx.reply(MatchMessage.RECENT_LIKED_ME_AS_BElOW.replace("{x}", users.length.toString()));
+
+            for (const user of users) {
+                await this.profileConcern.sendProfile(ctx, user, ctx.from.id, this.MATCH_BUTTONS(user));
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
     recentMatchedUsers = async ctx => {
         try {
             if (!(await this.auth(ctx))) return;

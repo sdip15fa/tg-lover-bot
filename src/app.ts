@@ -36,6 +36,7 @@ bot.command("register", (ctx: any) => ctx.scene.enter("register"));
 
 bot.command("match", matchController.match);
 bot.command("recent_liked", matchController.recentLikedUsers);
+bot.command("recent_liked_me", matchController.recentLikedMe);
 bot.command("recent_matched", matchController.recentMatchedUsers);
 
 bot.action(/MATCH_LIKE#(.+)/, matchController.like);

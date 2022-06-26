@@ -72,6 +72,23 @@ export class UserService {
         return await this.userPhotoService.getPhotoURLs(id);
     };
 
+    deleteAccount = async (id: string) => {
+        await db.transaction(t =>
+            db
+                .table("users")
+                .transacting(t)
+                .delete()
+                .where({telegram_id: id})
+                .then(() => t("user_photos").delete().where({telegram_id: id}))
+                .then(() => t("matches").delete().where({user_id: id}).orWhere({target_id: id}))
+                .then(t.commit)
+                .catch(e => {
+                    t.rollback();
+                    throw e;
+                })
+        );
+    };
+
     private static get userRepository() {
         return db.table("users");
     }

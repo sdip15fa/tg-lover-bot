@@ -12,3 +12,4 @@ renew - 更新 Telegram 帳戶名稱
 stats - 統計數據
 donate - 課金贊助窮三代IT狗
 feedback - 意見回饋 / 投訴
+delgame - 刪除帳號 (註：您的所有資料會被刪除)

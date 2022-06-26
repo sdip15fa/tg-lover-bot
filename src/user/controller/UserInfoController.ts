@@ -65,6 +65,13 @@ export class UserInfoController {
         await ctx.reply(UserInfoMessage.USERNAME_RENEWED.replace("{username}", ctx.from.username));
     };
 
+    deleteAccount = async ctx => {
+        if (!(await this.auth(ctx))) return;
+
+        await this.userService.deleteAccount(ctx.from.id);
+        await ctx.reply(UserInfoMessage.ACCOUNT_DELETED);
+    };
+
     private async auth(ctx) {
         if (!(await this.registerConcern.registerCheck(ctx))) return false;
         if (ctx.from.username) await this.userService.renewUsername(ctx);

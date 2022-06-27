@@ -50,11 +50,10 @@ export class MatchService {
 
     async bidirectionalMatchedUsers(userId: string): Promise<UserView[]> {
         const notPermittedIds = await MatchService.notPermittedIds();
-        const targetIds = await MatchService.matchRepository.pluck("target_id").from("matches").where({user_id: userId, like: true});
+        const targetIds = await MatchService.matchRepository.pluck("target_id").where({user_id: userId, like: true});
 
         const userIds = await MatchService.matchRepository
             .pluck("user_id")
-            .from("matches")
             .where({target_id: userId, like: true})
             .andWhere("user_id", "IN", targetIds)
             .andWhere("user_id", "NOT IN", notPermittedIds)

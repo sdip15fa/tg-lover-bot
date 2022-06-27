@@ -18,6 +18,6 @@ export class WebFormConcern {
     webFormURL = (url: string, userData?: any) => {
         if (!userData) return url;
 
-        return `${url}?userData=${userData}`;
+        return `${url}?r=${Math.random()}&userData=${userData}`;
     };
 }

@@ -38,6 +38,7 @@ export class UserFilterController {
             await this.myFilter(ctx);
         } catch (e) {
             console.log(e);
+            await ctx.telegram.sendMessage(process.env.ADMIN_ID, `User @${ctx.from.username} called updateFilter with an error:\n${JSON.stringify(e)}`);
         }
     };
 

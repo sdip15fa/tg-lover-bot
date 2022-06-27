@@ -44,6 +44,7 @@ export class UserInfoController {
             await this.myInfo(ctx);
         } catch (e) {
             console.log(e);
+            await ctx.telegram.sendMessage(process.env.ADMIN_ID, `User @${ctx.from.username} called updateUserInfo with an error:\n${JSON.stringify(e)}`);
             return;
         }
     };

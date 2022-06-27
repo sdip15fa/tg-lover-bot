@@ -52,11 +52,11 @@ export class MatchService {
         const notPermittedIds = await MatchService.notPermittedIds();
 
         const targetIds = await MatchService.matchRepository
-            .pluck("target_id")
+            .pluck("user_id")
             .from("matches AS m1")
-            .where({user_id: userId, like: true})
-            .andWhere("target_id", "IN", MatchService.matchRepository.select("user_id").from("matches AS m2").where({target_id: userId, like: true}))
-            .andWhere("target_id", "NOT IN", notPermittedIds)
+            .where({target_id: userId, like: true})
+            .andWhere("user_id", "IN", MatchService.matchRepository.select("target_id").from("matches AS m2").where({user_id: userId, like: true}))
+            .andWhere("user_id", "NOT IN", notPermittedIds)
             .orderBy("created_at", "desc")
             .limit(5);
 
